@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const storedAuth = sessionStorage.getItem('admin_auth');
@@ -20,16 +21,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     setLoading(false);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Check against ADMIN_PASSWORD from env (simulated client-side check)
-    // In production, this would be a proper server-side auth
-    if (password === 'blumea-admin-2024') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('admin_auth', 'true');
-      setError('');
-    } else {
-      setError('Invalid password');
+    setSubmitting(true);
+    setError('');
+    
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_auth', 'true');
+      } else {
+        setError(data.message || 'Invalid password');
+      }
+    } catch {
+      setError('Authentication failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -68,9 +83,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               )}
               <button
                 type="submit"
-                className="w-full bg-accent text-bg-primary py-2.5 rounded-md font-medium hover:bg-accent-hover transition-colors"
+                disabled={submitting}
+                className="w-full bg-accent text-bg-primary py-2.5 rounded-md font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
               >
-                Login
+                {submitting ? 'Logging in...' : 'Login'}
               </button>
             </form>
           </div>
