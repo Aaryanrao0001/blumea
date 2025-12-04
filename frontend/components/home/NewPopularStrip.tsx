@@ -4,12 +4,12 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PostCard } from '@/components/posts/PostCard';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface NewPopularStripProps {
-  newPosts: IPostPopulated[];
-  popularPosts: IPostPopulated[];
+  newPosts: PostData[];
+  popularPosts: PostData[];
 }
 
 export function NewPopularStrip({ newPosts, popularPosts }: NewPopularStripProps) {

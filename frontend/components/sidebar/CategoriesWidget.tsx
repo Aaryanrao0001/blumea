@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { ICategory } from '@/lib/types';
+import { CategoryData } from '@/lib/types';
 
 interface CategoriesWidgetProps {
-  categories: (ICategory & { postCount?: number })[];
+  categories: CategoryData[];
 }
 
 export function CategoriesWidget({ categories }: CategoriesWidgetProps) {

@@ -6,11 +6,11 @@ import { motion } from 'framer-motion';
 import { Clock, Calendar } from 'lucide-react';
 import { Pill } from '@/components/ui/Pill';
 import { StarRating } from '@/components/ui/StarRating';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 import { formatDate, getPlaceholderImage, truncateText } from '@/lib/utils';
 
 interface PostCardProps {
-  post: IPostPopulated;
+  post: PostData;
   variant?: 'default' | 'horizontal' | 'compact';
 }
 

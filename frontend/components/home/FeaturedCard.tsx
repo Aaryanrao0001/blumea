@@ -4,11 +4,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 import { getPlaceholderImage, truncateText } from '@/lib/utils';
 
 interface FeaturedCardProps {
-  post: IPostPopulated;
+  post: PostData;
 }
 
 export function FeaturedCard({ post }: FeaturedCardProps) {

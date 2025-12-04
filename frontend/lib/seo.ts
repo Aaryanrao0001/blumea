@@ -1,6 +1,20 @@
 import { Metadata } from 'next';
 import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from './routes';
-import { IPostPopulated } from './types';
+
+// Simplified post type for schema generation (works with both mock and real data)
+interface PostForSchema {
+  title: string;
+  slug: string;
+  type: 'blog' | 'review';
+  excerpt: string;
+  coverImage: { url: string; alt: string };
+  author: { name: string };
+  publishedAt: Date;
+  updatedAt: Date;
+  productName?: string;
+  brand?: string;
+  overallRating?: number;
+}
 
 interface PageSeoParams {
   title?: string;
@@ -63,7 +77,7 @@ export function generatePageMetadata({
   };
 }
 
-export function generateBlogPostSchema(post: IPostPopulated) {
+export function generateBlogPostSchema(post: PostForSchema) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -91,7 +105,7 @@ export function generateBlogPostSchema(post: IPostPopulated) {
   };
 }
 
-export function generateReviewSchema(post: IPostPopulated) {
+export function generateReviewSchema(post: PostForSchema) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Review',

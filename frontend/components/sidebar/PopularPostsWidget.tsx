@@ -2,11 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Clock } from 'lucide-react';
 import { Pill } from '@/components/ui/Pill';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 import { getPlaceholderImage } from '@/lib/utils';
 
 interface PopularPostsWidgetProps {
-  posts: IPostPopulated[];
+  posts: PostData[];
 }
 
 export function PopularPostsWidget({ posts }: PopularPostsWidgetProps) {

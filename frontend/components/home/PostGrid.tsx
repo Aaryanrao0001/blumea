@@ -2,10 +2,10 @@
 
 import { motion } from 'framer-motion';
 import { PostCard } from '@/components/posts/PostCard';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 
 interface PostGridProps {
-  posts: IPostPopulated[];
+  posts: PostData[];
   title?: string;
   columns?: 2 | 3;
 }

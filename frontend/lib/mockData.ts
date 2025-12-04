@@ -1,4 +1,10 @@
 // Simplified mock types for client-side usage (plain objects)
+interface MockTag {
+  _id: string;
+  title: string;
+  slug: string;
+}
+
 interface MockAuthor {
   _id: string;
   name: string;
@@ -24,7 +30,7 @@ interface MockPost {
   body: string;
   coverImage: { url: string; alt: string };
   category: MockCategory;
-  tags: never[];
+  tags: MockTag[];
   author: MockAuthor;
   publishedAt: Date;
   updatedAt: Date;
@@ -266,35 +272,29 @@ const mockPosts: MockPost[] = [
   },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFeaturedPost = (): any => {
+export const getFeaturedPost = (): MockPost => {
   return mockPosts.find((post) => post.isFeatured) || mockPosts[0];
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getPopularPosts = (limit: number = 5): any[] => {
+export const getPopularPosts = (limit: number = 5): MockPost[] => {
   return mockPosts.filter((post) => post.isPopular).slice(0, limit);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getNewPosts = (limit: number = 5): any[] => {
+export const getNewPosts = (limit: number = 5): MockPost[] => {
   return [...mockPosts]
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
     .slice(0, limit);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getAllPosts = (): any[] => {
+export const getAllPosts = (): MockPost[] => {
   return mockPosts;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getPostBySlug = (slug: string): any | undefined => {
+export const getPostBySlug = (slug: string): MockPost | undefined => {
   return mockPosts.find((post) => post.slug === slug);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getPostsByCategory = (categorySlug: string): any[] => {
+export const getPostsByCategory = (categorySlug: string): MockPost[] => {
   return mockPosts.filter(
     (post) =>
       typeof post.category === 'object' &&
@@ -303,7 +303,6 @@ export const getPostsByCategory = (categorySlug: string): any[] => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getCategories = (): any[] => {
+export const getCategories = (): MockCategory[] => {
   return mockCategories;
 };

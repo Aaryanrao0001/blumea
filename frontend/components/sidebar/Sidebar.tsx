@@ -2,11 +2,11 @@ import { SearchWidget } from './SearchWidget';
 import { PopularPostsWidget } from './PopularPostsWidget';
 import { CategoriesWidget } from './CategoriesWidget';
 import { NewsletterWidget } from './NewsletterWidget';
-import { IPostPopulated, ICategory } from '@/lib/types';
+import { PostData, CategoryData } from '@/lib/types';
 
 interface SidebarProps {
-  popularPosts?: IPostPopulated[];
-  categories?: (ICategory & { postCount?: number })[];
+  popularPosts?: PostData[];
+  categories?: CategoryData[];
   showSearch?: boolean;
   showNewsletter?: boolean;
 }

@@ -1,8 +1,8 @@
 import { PostCard } from './PostCard';
-import { IPostPopulated } from '@/lib/types';
+import { PostData } from '@/lib/types';
 
 interface RelatedPostsProps {
-  posts: IPostPopulated[];
+  posts: PostData[];
   title?: string;
 }
 

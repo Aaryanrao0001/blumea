@@ -77,6 +77,41 @@ export interface IPostPopulated extends Omit<IPost, 'category' | 'tags' | 'autho
   author: IAuthor;
 }
 
+// Generic post type for components (works with both mock and real data)
+export interface PostData {
+  _id: string | Types.ObjectId;
+  title: string;
+  slug: string;
+  type: 'blog' | 'review';
+  excerpt: string;
+  body: string;
+  coverImage: ICoverImage;
+  category: { _id: string | Types.ObjectId; title: string; slug: string; description?: string };
+  tags: { _id: string | Types.ObjectId; title: string; slug: string }[];
+  author: { _id: string | Types.ObjectId; name: string; slug: string; bio?: string; avatar?: string };
+  publishedAt: Date;
+  updatedAt: Date;
+  isFeatured: boolean;
+  isPopular: boolean;
+  readingTime?: number;
+  productName?: string;
+  brand?: string;
+  overallRating?: number;
+  criteriaRatings?: ICriteriaRating[];
+  pros?: string[];
+  cons?: string[];
+  verdict?: string;
+}
+
+// Generic category type for components
+export interface CategoryData {
+  _id: string | Types.ObjectId;
+  title: string;
+  slug: string;
+  description?: string;
+  postCount?: number;
+}
+
 // API response types
 export interface IPostsApiResponse {
   posts: IPostPopulated[];
