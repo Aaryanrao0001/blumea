@@ -11,17 +11,33 @@ import Author from '@/lib/db/models/Author';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+/**
+ * Accept either:
+ * - Authorization: Bearer <secret>
+ * - x-admin-secret: <secret>
+ *
+ * This keeps the route flexible for curl and UI calls.
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin password
-    const authHeader = request.headers.get('authorization');
-    const password = authHeader?.replace('Bearer ', '');
-    
-    if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
+    const authHeader = request.headers.get('authorization') || '';
+    const bearer = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
+    const xSecret = request.headers.get('x-admin-secret') || '';
+
+    const provided = bearer || xSecret || '';
+
+    if (!ADMIN_PASSWORD) {
+      console.error('ADMIN_PASSWORD is not configured in the server process');
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
+        { success: false, message: 'Server misconfiguration: ADMIN_PASSWORD not set' },
+        { status: 500 }
       );
+    }
+
+    // Exact match required. Do NOT reveal the expected secret in logs or responses.
+    if (provided !== ADMIN_PASSWORD) {
+      console.warn('Seed unauthorized. Header present:', Boolean(provided));
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     await connectToDatabase();
