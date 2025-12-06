@@ -120,7 +120,7 @@ export function aggregateMetrics(metrics: IPostMetrics[]): IPostMetrics | null {
     scrollDepthAvg: avgScrollDepth,
     searchImpressions: totalSearchImpressions,
     searchClicks: totalSearchClicks,
-    searchCtr: totalSearchClicks > 0 ? totalSearchClicks / totalSearchImpressions : 0,
+    searchCtr: totalSearchImpressions > 0 ? totalSearchClicks / totalSearchImpressions : 0,
     avgPosition,
     createdAt: metrics[0].createdAt,
     updatedAt: metrics[0].updatedAt,

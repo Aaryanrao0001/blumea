@@ -23,13 +23,13 @@ export default function JobsPage() {
     ]);
 
     try {
-      const res = await fetch(endpoint, {
+      // Use secure server-side endpoint to run jobs
+      const res = await fetch('/api/admin/run-job', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-cron-secret': process.env.NEXT_PUBLIC_CRON_SECRET || '',
         },
-        body: body ? JSON.stringify(body) : undefined,
+        body: JSON.stringify({ jobName, jobBody: body }),
       });
 
       const data = await res.json();
