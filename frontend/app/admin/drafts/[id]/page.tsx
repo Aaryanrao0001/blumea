@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Draft {
   _id: string;
@@ -27,31 +27,33 @@ interface Draft {
   publishedPostId?: string;
 }
 
-export default function DraftDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+// ✅ params is a plain object, not a Promise
+export default function DraftDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editedBody, setEditedBody] = useState('');
 
   useEffect(() => {
+    const fetchDraft = async () => {
+      try {
+        const res = await fetch(`/api/admin/drafts?id=${id}`);
+        const data = await res.json();
+        if (data.success) {
+          setDraft(data.draft);
+          setEditedBody(data.draft.bodyRaw);
+        }
+      } catch (error) {
+        console.error('Error fetching draft:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDraft();
   }, [id]);
-
-  const fetchDraft = async () => {
-    try {
-      const res = await fetch(`/api/admin/drafts?id=${id}`);
-      const data = await res.json();
-      if (data.success) {
-        setDraft(data.draft);
-        setEditedBody(data.draft.bodyRaw);
-      }
-    } catch (error) {
-      console.error('Error fetching draft:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAction = async (action: 'approve' | 'reject') => {
     try {
@@ -97,7 +99,12 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
       });
       const data = await res.json();
       if (data.success) {
-        fetchDraft();
+        // re-fetch to update status
+        setLoading(true);
+        const res2 = await fetch(`/api/admin/drafts?id=${id}`);
+        const data2 = await res2.json();
+        if (data2.success) setDraft(data2.draft);
+        setLoading(false);
       } else {
         alert(data.message);
       }
@@ -229,7 +236,11 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
               <div>
                 <dt className="text-text-tertiary text-sm">Status</dt>
                 <dd>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(draft.status)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(
+                      draft.status
+                    )}`}
+                  >
                     {draft.status}
                   </span>
                 </dd>
@@ -248,7 +259,9 @@ export default function DraftDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               <div>
                 <dt className="text-text-tertiary text-sm">Created</dt>
-                <dd className="text-text-primary">{new Date(draft.createdAt).toLocaleString()}</dd>
+                <dd className="text-text-primary">
+                  {new Date(draft.createdAt).toLocaleString()}
+                </dd>
               </div>
               <div>
                 <dt className="text-text-tertiary text-sm">Created By</dt>

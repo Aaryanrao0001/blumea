@@ -25,7 +25,7 @@ Price: ${p.price ? `${p.currency || '$'}${p.price}` : 'N/A'}`;
 
 TOPIC: ${topic.title}
 PRIMARY KEYWORD: ${topic.primaryKeyword}
-SECONDARY KEYWORDS: ${topic.secondaryKeywords.join(', ')}
+SECONDARY KEYWORDS: ${(topic.secondaryKeywords || []).join(', ')}
 
 OUTLINE TO FOLLOW:
 ${outline.map((h, i) => `${i + 1}. ${h}`).join('\n')}

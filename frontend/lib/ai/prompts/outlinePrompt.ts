@@ -16,7 +16,7 @@ export function createOutlinePrompt(
 
 Topic: ${topic.title}
 Primary Keyword: ${topic.primaryKeyword}
-Secondary Keywords: ${topic.secondaryKeywords.join(', ')}
+Secondary Keywords: ${(topic.secondaryKeywords || []).join(', ')}
 
 Related Products:
 ${productList}

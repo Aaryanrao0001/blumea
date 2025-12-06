@@ -116,4 +116,12 @@ export async function getDraftsWithPagination(
     drafts: drafts as unknown as IGeneratedDraft[],
     total,
   };
+  
+}
+export async function createDraftFromGeneration(
+  data: any
+): Promise<IGeneratedDraft> {
+  await connectToDatabase();
+  const draft = await GeneratedDraft.create(data);
+  return draft.toObject() as unknown as IGeneratedDraft;
 }
