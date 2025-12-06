@@ -3,7 +3,7 @@ import { getTopPerformers, getBottomPerformers } from '@/lib/db/repositories/pos
 import { getCurrentConfig, createNewVersion } from '@/lib/db/repositories/strategyConfig';
 import { connectToDatabase } from '@/lib/db/mongoose';
 import Post from '@/lib/db/models/Post';
-import Category from '@/lib/db/models/Category';
+// import Category from '@/lib/db/models/Category';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 

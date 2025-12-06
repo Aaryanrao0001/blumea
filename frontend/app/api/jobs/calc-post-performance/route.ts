@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllPostSlugs } from '@/lib/db/repositories/posts';
+// import { getAllPostSlugs } from '@/lib/db/repositories/posts';
 import { getMetricsByPostId } from '@/lib/db/repositories/postMetrics';
 import { getRevenueByPostId } from '@/lib/db/repositories/postRevenue';
 import { upsertPerformance } from '@/lib/db/repositories/postPerformance';

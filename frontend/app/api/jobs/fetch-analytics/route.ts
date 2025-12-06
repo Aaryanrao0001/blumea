@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllPostSlugs } from '@/lib/db/repositories/posts';
-import { upsertDailyMetrics } from '@/lib/db/repositories/postMetrics';
-import { upsertDailyRevenue } from '@/lib/db/repositories/postRevenue';
+// import { upsertDailyMetrics } from '@/lib/db/repositories/postMetrics';
+// import { upsertDailyRevenue } from '@/lib/db/repositories/postRevenue';
 import { fetchGA4Metrics } from '@/lib/analytics/gaClient';
 import { fetchSearchConsoleMetrics } from '@/lib/analytics/searchConsoleClient';
 
@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
 
     // TODO: Fetch analytics from GA4
     // For now, this is a placeholder
-    const ga4Metrics = await fetchGA4Metrics(postSlugs, date, date);
+    await fetchGA4Metrics(postSlugs, date, date);
     
     // TODO: Fetch search console data
     // For now, this is a placeholder
-    const searchMetrics = await fetchSearchConsoleMetrics(
+    await fetchSearchConsoleMetrics(
       postSlugs.map(slug => `https://blumea.com/blog/${slug}`),
       date,
       date
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     // - Amazon Associates API
     // For now, we'll skip this
 
-    let metricsUpdated = 0;
+    const metricsUpdated = 0;
 
     // Upsert metrics for each post
     // Since we don't have real data yet, we'll skip the actual upserting
