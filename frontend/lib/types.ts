@@ -238,3 +238,132 @@ export interface IGeneratedDraft {
   updatedAt: Date;
   publishedPostId?: Types.ObjectId;
 }
+
+// Phase 3: Living System Types
+
+export type PostStatus = "draft" | "lab" | "scheduled" | "published" | "archived";
+export type PostType = "blog" | "review";
+
+export interface Post {
+  _id: Types.ObjectId;
+
+  // Origin & workflow
+  source: "ai" | "manual" | "mixed";
+  status: PostStatus;
+  postType: PostType;
+
+  // Core
+  title: string;
+  slug: string;
+
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+  canonicalUrl?: string;
+
+  // Classification
+  categorySlug: string;
+  tagSlugs: string[];
+
+  // Content
+  excerpt: string;
+  bodyFormat: "markdown" | "richtext";
+  bodyRaw: string;
+  wordCount: number;
+
+  // Multi-slot images
+  images: {
+    featured?: { url: string; alt: string };
+    card?: { url: string; alt: string };
+    popularSlider?: { url: string; alt: string };
+    inline?: {
+      id: string;
+      url: string;
+      alt: string;
+      caption?: string;
+    }[];
+  };
+
+  // Review-specific fields
+  review?: {
+    productIds: Types.ObjectId[];
+    overallRating: number;
+    criteriaRatings?: { label: string; score: number }[];
+    pros: string[];
+    cons: string[];
+    verdict: string;
+  };
+
+  // AI / topic metadata
+  topicId?: Types.ObjectId;
+  aiGenerationMeta?: {
+    claudeModel: string;
+    generatedAt: Date;
+  };
+
+  // Dates
+  createdAt: Date;
+  createdBy: string;
+  updatedAt: Date;
+  publishedAt?: Date;
+  scheduledFor?: Date;
+
+  // Flags
+  isFeatured?: boolean;
+  isPopular?: boolean;
+}
+
+export interface PostMetrics {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  date: Date;
+  pageViews: number;
+  uniqueVisitors: number;
+  avgTimeOnPage: number;
+  bounceRate: number;
+  scrollDepthAvg: number;
+  socialShares: number;
+}
+
+export interface PostRevenue {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  date: Date;
+  affiliateClicks: number;
+  conversions: number;
+  revenue: number;
+  epc: number; // earnings per click
+}
+
+export interface PostPerformance {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  successScore: number;
+  engagementScore: number;
+  seoScore: number;
+  monetizationScore: number;
+  lastCalculated: Date;
+}
+
+export interface StrategyConfig {
+  _id: Types.ObjectId;
+  weights: {
+    engagement: number;
+    seo: number;
+    monetization: number;
+  };
+  topicPreferences: {
+    category: string;
+    weight: number;
+  }[];
+  contentRules: {
+    introMaxWords: number;
+    faqCount: number;
+    useComparisonTable: boolean;
+    comparisonTableProbability: number;
+  };
+  autoPublishEnabled: boolean;
+  maxPostsPerDay: number;
+  minSuccessScoreForRefresh: number;
+  updatedAt: Date;
+}
