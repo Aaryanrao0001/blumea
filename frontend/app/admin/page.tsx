@@ -160,6 +160,27 @@ export default function AdminDashboard() {
               <div className="text-sm text-text-secondary">Add or modify content topics</div>
             </a>
             <a
+              href="/admin/performance"
+              className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
+            >
+              <div className="font-medium text-text-primary">Post Performance</div>
+              <div className="text-sm text-text-secondary">View analytics and success scores</div>
+            </a>
+            <a
+              href="/admin/strategy"
+              className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
+            >
+              <div className="font-medium text-text-primary">Strategy Config</div>
+              <div className="text-sm text-text-secondary">Adjust AI content strategy</div>
+            </a>
+            <a
+              href="/admin/jobs"
+              className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
+            >
+              <div className="font-medium text-text-primary">Jobs & Automation</div>
+              <div className="text-sm text-text-secondary">Run jobs manually or view schedules</div>
+            </a>
+            <a
               href="/admin/test"
               className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
             >
