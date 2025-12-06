@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTopTopicsForJob, markTopicUsed } from '@/lib/db/repositories/topics';
 import { getSkincareProductsByIds } from '@/lib/db/repositories/skincareProducts';
 import { getProductScoresByProductIds, updateProductScore } from '@/lib/db/repositories/productScores';
-import { createGeneratedDraft } from '@/lib/db/repositories/generatedDrafts';
+import { createGeneratedDraft, markDraftPublished } from '@/lib/db/repositories/generatedDrafts';
 import { calculateProductScore } from '@/lib/scoring/calculateScore';
 import {
   generateOutlineAndAngle,
@@ -10,6 +10,12 @@ import {
   generateSeoMetaAndSchema,
 } from '@/lib/ai/claudeClient';
 import { slugify } from '@/lib/utils';
+import { getCurrentConfig, ensureDefaultConfig } from '@/lib/db/repositories/strategyConfig';
+import { createPost } from '@/lib/db/repositories/posts';
+import Category from '@/lib/db/models/Category';
+import Author from '@/lib/db/models/Author';
+import Tag from '@/lib/db/models/Tag';
+import { connectToDatabase } from '@/lib/db/mongoose';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -26,6 +32,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
     const limit = body.limit || 1;
+
+    // Get strategy config for auto-publish and content rules
+    const config = await getCurrentConfig() || await ensureDefaultConfig();
 
     // Step 1: Get top topics
     const topics = await getTopTopicsForJob(limit);
@@ -59,10 +68,10 @@ export async function POST(request: NextRequest) {
 
         const scores = await getProductScoresByProductIds(productIds);
 
-        // Step 3: Generate outline via Claude
+        // Step 3: Generate outline via Claude (with config context)
         const outline = await generateOutlineAndAngle(topic, products, scores);
 
-        // Step 4: Generate full draft via Claude
+        // Step 4: Generate full draft via Claude (with config context)
         const bodyRaw = await generateFullArticleDraft(topic, outline, products, scores);
 
         // Step 5: Generate SEO meta via Claude
@@ -86,9 +95,46 @@ export async function POST(request: NextRequest) {
           outline,
           bodyRaw,
           wordCount: bodyRaw.split(/\s+/).length,
-          status: 'draft',
+          status: config.autoPublishEnabled ? 'approved' : 'draft',
           createdBy: 'system',
         });
+
+        // Auto-publish if enabled
+        let publishedPostId;
+        if (config.autoPublishEnabled) {
+          await connectToDatabase();
+          
+          // Get category, author, and tags
+          const category = await Category.findOne({ slug: 'skincare' });
+          const author = await Author.findOne(); // Get first author
+          const tags = await Tag.find({ slug: { $in: draft.tagSlugs } });
+          
+          if (category && author) {
+            const post = await createPost({
+              title: draft.title,
+              slug: draft.slug,
+              type: draft.postType,
+              excerpt: draft.excerpt,
+              body: draft.bodyRaw,
+              coverImage: {
+                url: draft.coverImageUrl || '/images/placeholder.jpg',
+                alt: draft.title,
+              },
+              category: category._id.toString(),
+              author: author._id.toString(),
+              tags: tags.map(t => t._id.toString()),
+              publishedAt: new Date(),
+              updatedAt: new Date(),
+              isFeatured: false,
+              isPopular: false,
+            });
+            
+            publishedPostId = post._id.toString();
+            
+            // Link draft to published post
+            await markDraftPublished(draft._id.toString(), publishedPostId);
+          }
+        }
 
         // Mark topic as used
         await markTopicUsed(topic._id.toString());
@@ -97,6 +143,8 @@ export async function POST(request: NextRequest) {
           topicId: topic._id.toString(),
           topicTitle: topic.title,
           draftId: draft._id.toString(),
+          publishedPostId,
+          autoPublished: !!publishedPostId,
           status: 'success',
         });
       } catch (error) {

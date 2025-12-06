@@ -238,3 +238,109 @@ export interface IGeneratedDraft {
   updatedAt: Date;
   publishedPostId?: Types.ObjectId;
 }
+
+// Phase 3: Analytics Brain, Self-Optimization & Auto-Publishing Types
+
+export interface IPostMetrics {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  date: string; // "2025-12-06" (UTC day bucket)
+  pageViews: number;
+  uniqueVisitors: number;
+  avgTimeOnPage: number;   // seconds
+  bounceRate: number;      // 0–1
+  scrollDepthAvg: number;  // 0–1
+  searchImpressions?: number;
+  searchClicks?: number;
+  searchCtr?: number;
+  avgPosition?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IPostRevenue {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  date: string;           // same daily bucket
+  affiliateClicks: number;
+  affiliateConversions: number;
+  revenue: number;        // in base currency
+  epc: number;            // earnings per click
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IPostPerformance {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  successScore: number;   // 0–100 overall
+  engagementScore: number; // 0-100
+  seoScore: number;        // 0-100
+  monetizationScore: number; // 0-100
+  lastCalculatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IPostExperiment {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  type: "title" | "cta" | "hero" | "layout";
+  variants: {
+    key: string;                 // "A" or "B"
+    title?: string;
+    heroSubtitle?: string;
+    ctaText?: string;
+    assignedWeight: number;      // % of traffic
+  }[];
+  startDate: Date;
+  endDate?: Date;
+  metrics: {
+    [variantKey: string]: {
+      impressions: number;
+      clicks: number;
+      conversions?: number;
+    };
+  };
+  winningVariantKey?: string;
+  status: "running" | "completed";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IStrategyConfig {
+  _id: Types.ObjectId;
+  version: number;
+  
+  // Scoring weights
+  weights: {
+    engagement: number;      // e.g., 0.4
+    seo: number;             // e.g., 0.3
+    monetization: number;    // e.g., 0.3
+  };
+
+  // Topic selection preferences
+  topicPreferences: {
+    acneWeight: number;
+    antiAgingWeight: number;
+    sunscreenWeight: number;
+    barrierRepairWeight: number;
+    [key: string]: number;
+  };
+
+  // Content style adjustments
+  contentRules: {
+    introMaxWords: number;
+    includeComparisonTableProbability: number;
+    includeRoutineSectionProbability: number;
+    faqCount: number;
+  };
+
+  // Auto-publish toggle
+  autoPublishEnabled: boolean;
+  minSuccessScoreForRefresh: number;
+  maxPostsPerDay: number;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
