@@ -62,13 +62,15 @@ export default function AdminStrategyPage() {
     setSaving(true);
     try {
       // TODO: Create API endpoint to update strategy config
+      // Example implementation:
       // const res = await fetch('/api/admin/strategy', {
       //   method: 'PUT',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(config),
       // });
+      // if (!res.ok) throw new Error('Failed to save');
       
-      alert('Strategy config updated successfully!');
+      alert('Strategy config updated successfully! (TODO: Implement API endpoint to persist changes)');
     } catch (error) {
       console.error('Error saving strategy config:', error);
       alert('Error saving config');

@@ -31,32 +31,32 @@ export async function updateStrategyConfig(data: Partial<Omit<StrategyConfig, '_
 export async function getOrCreateStrategyConfig(): Promise<StrategyConfig> {
   await connectToDatabase();
   
-  let config = await StrategyConfigModel.findOne().lean();
+  const config = await StrategyConfigModel.findOne().lean();
   
-  if (!config) {
-    // Create default config
-    const defaultConfig = {
-      weights: {
-        engagement: 0.33,
-        seo: 0.33,
-        monetization: 0.34,
-      },
-      topicPreferences: [],
-      contentRules: {
-        introMaxWords: 150,
-        faqCount: 5,
-        useComparisonTable: true,
-        comparisonTableProbability: 0.7,
-      },
-      autoPublishEnabled: false,
-      maxPostsPerDay: 3,
-      minSuccessScoreForRefresh: 50,
-      updatedAt: new Date(),
-    };
-    
-    await StrategyConfigModel.create(defaultConfig);
-    config = await StrategyConfigModel.findOne().lean();
+  if (config) {
+    return config as StrategyConfig;
   }
   
-  return config as StrategyConfig;
+  // Create default config
+  const defaultConfig = {
+    weights: {
+      engagement: 0.33,
+      seo: 0.33,
+      monetization: 0.34,
+    },
+    topicPreferences: [],
+    contentRules: {
+      introMaxWords: 150,
+      faqCount: 5,
+      useComparisonTable: true,
+      comparisonTableProbability: 0.7,
+    },
+    autoPublishEnabled: false,
+    maxPostsPerDay: 3,
+    minSuccessScoreForRefresh: 50,
+    updatedAt: new Date(),
+  };
+  
+  const newConfig = await StrategyConfigModel.create(defaultConfig);
+  return newConfig.toObject() as StrategyConfig;
 }

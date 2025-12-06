@@ -46,15 +46,18 @@ export async function POST(request: NextRequest) {
     let hasComparisonCount = 0;
     let topPostsCount = 0;
 
+    // TODO: Implement actual content analysis
+    // This is a simplified mock version
     for (const perf of topPosts) {
       const post = await getPostById(perf.postId);
       if (post) {
-        // TODO: Analyze actual post content for patterns
-        // This is a simplified version
         topPostsCount++;
-        totalIntroWords += 150; // Mock value
-        totalFaqCount += 5; // Mock value
-        if (Math.random() > 0.5) hasComparisonCount++;
+        // TODO: Analyze actual post content for intro word count
+        totalIntroWords += 150; // Mock value - replace with actual analysis
+        // TODO: Analyze for FAQ sections
+        totalFaqCount += 5; // Mock value - replace with actual analysis
+        // TODO: Check for comparison tables in content
+        if (Math.random() > 0.5) hasComparisonCount++; // Mock - replace with actual check
       }
     }
 

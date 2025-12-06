@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertMetrics } from '@/lib/db/repositories/postMetrics';
 import { upsertRevenue } from '@/lib/db/repositories/postRevenue';
+import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
 import { Types } from 'mongoose';
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -22,8 +23,9 @@ export async function POST(request: NextRequest) {
     // - Fetch affiliate data from affiliate network APIs
     // - Process and store in PostMetrics and PostRevenue collections
 
-    // For now, this is a placeholder
-    const mockPostIds: Types.ObjectId[] = []; // TODO: Get actual post IDs from database
+    // For now, fetch published posts to process (when API integration is done)
+    const { posts } = await getAllPostsPhase3({ status: 'published', limit: 100 });
+    const mockPostIds: Types.ObjectId[] = posts.map(p => p._id); // TODO: Get actual post IDs from database
 
     const results = {
       metricsImported: 0,
