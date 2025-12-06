@@ -41,7 +41,7 @@ const CriteriaRatingSchema = new Schema(
   { _id: false }
 );
 
-const PostSchema = new Schema<IPostDocument>(
+const PostSchema = new Schema(
   {
     // Phase 3: Origin & workflow
     source: { type: String, enum: ['ai', 'manual', 'mixed'], default: 'manual' },

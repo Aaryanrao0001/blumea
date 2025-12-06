@@ -26,6 +26,7 @@ export default function AdminPostsPage() {
 
   useEffect(() => {
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, page]);
 
   const fetchPosts = async () => {

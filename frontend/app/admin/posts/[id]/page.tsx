@@ -30,6 +30,7 @@ export default function PostEditorPage() {
     if (!isNew) {
       fetchPost();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId, isNew]);
 
   const fetchPost = async () => {

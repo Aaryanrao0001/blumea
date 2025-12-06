@@ -395,7 +395,7 @@ export async function createPostPhase3(
     updatedAt: new Date(),
   });
 
-  return post.toObject() as PostPhase3;
+  return post.toObject() as unknown as PostPhase3;
 }
 
 export async function updatePostPhase3(
@@ -473,5 +473,4 @@ export async function getAllPostsPhase3(options: {
     posts: posts as unknown as PostPhase3[],
     total,
   };
-}
 }

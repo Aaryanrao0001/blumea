@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTopPerformers, getBottomPerformers } from '@/lib/db/repositories/postPerformance';
+import { getTopPerformers } from '@/lib/db/repositories/postPerformance';
 import { updateStrategyConfig } from '@/lib/db/repositories/strategyConfig';
 import { getPostById } from '@/lib/db/repositories/posts';
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     // Get top and bottom performers
     const topPosts = await getTopPerformers(10);
-    const bottomPosts = await getBottomPerformers(10);
+    // const bottomPosts = await getBottomPerformers(10); // Reserved for future use
 
     // Analyze category performance
     const categoryPerformance = new Map<string, { total: number; count: number }>();

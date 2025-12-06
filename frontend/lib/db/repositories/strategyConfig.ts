@@ -54,7 +54,8 @@ export async function getOrCreateStrategyConfig(): Promise<StrategyConfig> {
       updatedAt: new Date(),
     };
     
-    config = await StrategyConfigModel.create(defaultConfig);
+    await StrategyConfigModel.create(defaultConfig);
+    config = await StrategyConfigModel.findOne().lean();
   }
   
   return config as StrategyConfig;

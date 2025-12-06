@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertMetrics } from '@/lib/db/repositories/postMetrics';
 import { upsertRevenue } from '@/lib/db/repositories/postRevenue';
+import { Types } from 'mongoose';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     // - Process and store in PostMetrics and PostRevenue collections
 
     // For now, this is a placeholder
-    const mockPostIds = []; // TODO: Get actual post IDs from database
+    const mockPostIds: Types.ObjectId[] = []; // TODO: Get actual post IDs from database
 
     const results = {
       metricsImported: 0,
