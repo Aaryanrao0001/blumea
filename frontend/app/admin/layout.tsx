@@ -108,6 +108,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <a href="/admin" className="text-text-secondary hover:text-accent transition-colors">
                   Dashboard
                 </a>
+                <a href="/admin/posts" className="text-text-secondary hover:text-accent transition-colors">
+                  Posts
+                </a>
                 <a href="/admin/drafts" className="text-text-secondary hover:text-accent transition-colors">
                   Drafts
                 </a>
@@ -119,6 +122,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </a>
                 <a href="/admin/ingredients" className="text-text-secondary hover:text-accent transition-colors">
                   Ingredients
+                </a>
+                <a href="/admin/performance" className="text-text-secondary hover:text-accent transition-colors">
+                  Performance
+                </a>
+                <a href="/admin/strategy" className="text-text-secondary hover:text-accent transition-colors">
+                  Strategy
                 </a>
                 <a href="/admin/test" className="text-text-secondary hover:text-accent transition-colors">
                   System Test
