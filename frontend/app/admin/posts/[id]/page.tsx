@@ -77,6 +77,8 @@ export default function PostEditorPage() {
         .map((tag) => tag.trim())
         .filter(Boolean);
 
+      // Use the same image for both cover and featured slots
+      // This simplifies the UX while maintaining compatibility with the Phase 3 schema
       const imageObject = formData.coverImageUrl ? {
         url: formData.coverImageUrl,
         alt: formData.coverImageAlt || formData.title,

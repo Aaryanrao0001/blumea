@@ -121,7 +121,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
               <PostMeta
                 publishedAt={post.publishedAt || post.createdAt}
-                readingTime={Math.ceil(post.wordCount / 200)}
+                readingTime={post.wordCount ? Math.ceil(post.wordCount / 200) : undefined}
                 authorName={post.createdBy}
                 rating={overallRating}
                 showRating={post.postType === 'review'}

@@ -31,7 +31,10 @@ export default async function HomePage() {
   // Get all posts for the main grid (combine and dedupe)
   const allPostsMap = new Map();
   [...featured, ...popular, ...newPosts].forEach(post => {
-    allPostsMap.set(post._id.toString(), post);
+    const id = post._id?.toString();
+    if (id) {
+      allPostsMap.set(id, post);
+    }
   });
   const allPosts = Array.from(allPostsMap.values()).map(convertPhase3PostToPostData);
 
