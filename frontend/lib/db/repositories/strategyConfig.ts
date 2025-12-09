@@ -10,6 +10,31 @@ export async function getStrategyConfig(): Promise<StrategyConfig | null> {
   return config as StrategyConfig | null;
 }
 
+export async function getCurrentConfig(): Promise<StrategyConfig> {
+  await connectToDatabase();
+  
+  const config = await StrategyConfigModel.findOne().lean();
+  
+  if (config) {
+    return config as StrategyConfig;
+  }
+  
+  // Create default config if none exists
+  return await getOrCreateStrategyConfig();
+}
+
+export async function updateConfig(data: Partial<Omit<StrategyConfig, '_id'>>): Promise<StrategyConfig | null> {
+  await connectToDatabase();
+  
+  const config = await StrategyConfigModel.findOneAndUpdate(
+    {},
+    { ...data, updatedAt: new Date() },
+    { new: true, upsert: true }
+  ).lean();
+  
+  return config as StrategyConfig | null;
+}
+
 export async function createStrategyConfig(data: Omit<StrategyConfig, '_id'>): Promise<StrategyConfig> {
   await connectToDatabase();
   const config = await StrategyConfigModel.create(data);
