@@ -10,9 +10,10 @@ import { RelatedPosts } from '@/components/posts/RelatedPosts';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { Pill } from '@/components/ui/Pill';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { getPostBySlug, getAllPosts, getPopularPosts, getCategories } from '@/lib/mockData';
+import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
+import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata, generateBlogPostSchema, generateReviewSchema } from '@/lib/seo';
-import { getPlaceholderImage } from '@/lib/utils';
+import { getPlaceholderImage, convertPhase3PostToPostData } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,7 +21,10 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  
+  // Fetch the post
+  const { posts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
+  const post = posts.find(p => p.slug === slug);
 
   if (!post) {
     return generatePageMetadata({
@@ -35,16 +39,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: post.title,
     description: post.excerpt,
     path: `/blog/${post.slug}`,
-    image: post.coverImage?.url,
+    image: post.images?.featured?.url || post.images?.card?.url,
     type: 'article',
-    publishedTime: new Date(post.publishedAt).toISOString(),
+    publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
     modifiedTime: new Date(post.updatedAt).toISOString(),
-    author: typeof post.author === 'object' ? post.author.name : undefined,
   });
 }
 
 export async function generateStaticParams() {
-  const posts = getAllPosts();
+  const { posts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -52,46 +55,44 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  
+  // Fetch the post
+  const { posts: allPosts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
+  const post = allPosts.find(p => p.slug === slug);
 
   if (!post) {
     notFound();
   }
 
-  const popularPosts = getPopularPosts(5);
-  const categories = getCategories();
+  // Get popular posts and categories
+  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
+  const categories = await getAllCategories();
   
   // Get related posts (same category, excluding current)
-  const allPosts = getAllPosts();
   const relatedPosts = allPosts
-    .filter(
-      (p) =>
-        p.slug !== post.slug &&
-        typeof p.category === 'object' &&
-        typeof post.category === 'object' &&
-        p.category.slug === post.category.slug
-    )
+    .filter(p => p.slug !== post.slug && p.categorySlug === post.categorySlug)
     .slice(0, 3);
 
-  const categoryTitle =
-    typeof post.category === 'object' && 'title' in post.category
-      ? post.category.title
-      : 'Uncategorized';
+  const categoryTitle = post.categorySlug || 'Uncategorized';
 
-  const categorySlug =
-    typeof post.category === 'object' && 'slug' in post.category
-      ? post.category.slug
-      : '';
+  // Convert Phase 3 post structure to match expected types
+  const overallRating = post.review?.overallRating;
+  const criteriaRatings = post.review?.criteriaRatings;
+  const pros = post.review?.pros;
+  const cons = post.review?.cons;
+  const verdict = post.review?.verdict;
 
-  const authorName =
-    typeof post.author === 'object' && 'name' in post.author
-      ? post.author.name
-      : 'Unknown';
+  // Create schema-compatible post object
+  const postForSchema = convertPhase3PostToPostData(post);
 
   const schema =
-    post.type === 'review'
-      ? generateReviewSchema(post)
-      : generateBlogPostSchema(post);
+    post.postType === 'review'
+      ? generateReviewSchema(postForSchema)
+      : generateBlogPostSchema(postForSchema);
+  
+  // Convert posts for components
+  const popularPostsConverted = popularPosts.map(convertPhase3PostToPostData);
+  const relatedPostsConverted = relatedPosts.map(convertPhase3PostToPostData);
 
   return (
     <>
@@ -102,8 +103,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           <article className="lg:col-span-9">
             <Breadcrumbs
               items={[
-                { label: post.type === 'review' ? 'Reviews' : 'Blog', href: post.type === 'review' ? '/reviews' : '/blog' },
-                { label: categoryTitle, href: `/category/${categorySlug}` },
+                { label: post.postType === 'review' ? 'Reviews' : 'Blog', href: post.postType === 'review' ? '/reviews' : '/blog' },
+                { label: categoryTitle, href: `/category/${post.categorySlug}` },
                 { label: post.title },
               ]}
             />
@@ -112,7 +113,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <header className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <Pill variant="accent">{categoryTitle}</Pill>
-                {post.type === 'review' && (
+                {post.postType === 'review' && (
                   <Pill variant="muted">Review</Pill>
                 )}
               </div>
@@ -122,19 +123,19 @@ export default async function BlogPostPage({ params }: PageProps) {
               </h1>
 
               <PostMeta
-                publishedAt={post.publishedAt}
-                readingTime={post.readingTime}
-                authorName={authorName}
-                rating={post.overallRating}
-                showRating={post.type === 'review'}
+                publishedAt={post.publishedAt || post.createdAt}
+                readingTime={Math.ceil(post.wordCount / 200)}
+                authorName={post.createdBy}
+                rating={overallRating}
+                showRating={post.postType === 'review'}
               />
             </header>
 
             {/* Cover Image */}
             <div className="relative aspect-video rounded-xl overflow-hidden mb-8">
               <Image
-                src={post.coverImage?.url || getPlaceholderImage(1200, 675)}
-                alt={post.coverImage?.alt || post.title}
+                src={post.images?.featured?.url || post.images?.card?.url || getPlaceholderImage(1200, 675)}
+                alt={post.images?.featured?.alt || post.images?.card?.alt || post.title}
                 fill
                 className="object-cover"
                 priority
@@ -142,14 +143,14 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
 
             {/* Review Summary (if review) */}
-            {post.type === 'review' && post.overallRating && (
+            {post.postType === 'review' && overallRating && (
               <div className="mb-8">
                 <ReviewSummary
-                  overallRating={post.overallRating}
-                  criteriaRatings={post.criteriaRatings}
-                  pros={post.pros}
-                  cons={post.cons}
-                  verdict={post.verdict}
+                  overallRating={overallRating}
+                  criteriaRatings={criteriaRatings}
+                  pros={pros}
+                  cons={cons}
+                  verdict={verdict}
                 />
               </div>
             )}
@@ -159,12 +160,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               <p className="text-text-secondary text-lg leading-relaxed mb-6">
                 {post.excerpt}
               </p>
-              <PostBodyRenderer content={post.body} />
+              <PostBodyRenderer content={post.bodyRaw} />
             </div>
 
             {/* Related Posts */}
-            {relatedPosts.length > 0 && (
-              <RelatedPosts posts={relatedPosts} />
+            {relatedPostsConverted.length > 0 && (
+              <RelatedPosts posts={relatedPostsConverted} />
             )}
           </article>
 
@@ -172,7 +173,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <aside className="lg:col-span-3">
             <div className="sticky top-24">
               <Sidebar
-                popularPosts={popularPosts}
+                popularPosts={popularPostsConverted}
                 categories={categories}
               />
             </div>

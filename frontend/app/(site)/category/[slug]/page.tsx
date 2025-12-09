@@ -4,8 +4,10 @@ import { MainContainer } from '@/components/layout/MainContainer';
 import { PostGrid } from '@/components/home/PostGrid';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { Breadcrumbs } from '@/components/posts/Breadcrumbs';
-import { getPostsByCategory, getPopularPosts, getCategories } from '@/lib/mockData';
+import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
+import { getAllCategories, getCategoryBySlug } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
+import { convertPhase3PostToPostData } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -13,8 +15,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const categories = getCategories();
-  const category = categories.find((c) => c.slug === slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category) {
     return generatePageMetadata({
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  const categories = getCategories();
+  const categories = await getAllCategories();
   return categories.map((category) => ({
     slug: category.slug,
   }));
@@ -40,15 +41,28 @@ export async function generateStaticParams() {
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const categories = getCategories();
-  const category = categories.find((c) => c.slug === slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category) {
     notFound();
   }
 
-  const posts = getPostsByCategory(slug);
-  const popularPosts = getPopularPosts(5);
+  // Fetch posts for this category
+  const { posts } = await getAllPostsPhase3({ 
+    status: 'published',
+    limit: 100 
+  });
+  
+  // Filter by category slug
+  const categoryPosts = posts.filter(p => p.categorySlug === slug);
+  
+  // Get popular posts
+  const popularPosts = posts.filter(p => p.isPopular).slice(0, 5);
+  const categories = await getAllCategories();
+
+  // Convert to PostData format
+  const categoryPostsConverted = categoryPosts.map(convertPhase3PostToPostData);
+  const popularPostsConverted = popularPosts.map(convertPhase3PostToPostData);
 
   return (
     <MainContainer>
@@ -69,21 +83,27 @@ export default async function CategoryPage({ params }: PageProps) {
           </p>
         )}
         <p className="text-text-tertiary mt-2">
-          {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+          {categoryPostsConverted.length} {categoryPostsConverted.length === 1 ? 'post' : 'posts'}
         </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-9">
-          <PostGrid posts={posts} columns={2} />
+      {categoryPostsConverted.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-text-secondary">No posts in this category yet.</p>
         </div>
-        <aside className="lg:col-span-3">
-          <Sidebar
-            popularPosts={popularPosts}
-            categories={categories}
-          />
-        </aside>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-9">
+            <PostGrid posts={categoryPostsConverted} columns={2} />
+          </div>
+          <aside className="lg:col-span-3">
+            <Sidebar
+              popularPosts={popularPostsConverted}
+              categories={categories}
+            />
+          </aside>
+        </div>
+      )}
     </MainContainer>
   );
 }

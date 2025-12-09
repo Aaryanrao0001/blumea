@@ -41,11 +41,13 @@ export async function getPosts(options: GetPostsOptions = {}): Promise<{
     limit = 10,
     page = 1,
     excludeSlug,
+    status = 'published', // Default to published for public pages
   } = options;
 
   const query: Record<string, unknown> = {};
 
   if (type) query.type = type;
+  if (status) query.status = status;
   if (featured !== undefined) query.isFeatured = featured;
   if (popular !== undefined) query.isPopular = popular;
   if (excludeSlug) query.slug = { $ne: excludeSlug };
@@ -90,7 +92,7 @@ export async function getPostBySlug(
   await connectToDatabase();
   ensureModels();
 
-  const post = await Post.findOne({ slug })
+  const post = await Post.findOne({ slug, status: 'published' })
     .populate('category')
     .populate('author')
     .populate('tags')
@@ -103,7 +105,7 @@ export async function getFeaturedPost(): Promise<IPostPopulated | null> {
   await connectToDatabase();
   ensureModels();
 
-  const post = await Post.findOne({ isFeatured: true })
+  const post = await Post.findOne({ isFeatured: true, status: 'published' })
     .populate('category')
     .populate('author')
     .populate('tags')
@@ -119,7 +121,7 @@ export async function getPopularPosts(
   await connectToDatabase();
   ensureModels();
 
-  const posts = await Post.find({ isPopular: true })
+  const posts = await Post.find({ isPopular: true, status: 'published' })
     .populate('category')
     .populate('author')
     .populate('tags')
@@ -134,7 +136,7 @@ export async function getNewPosts(limit: number = 5): Promise<IPostPopulated[]> 
   await connectToDatabase();
   ensureModels();
 
-  const posts = await Post.find()
+  const posts = await Post.find({ status: 'published' })
     .populate('category')
     .populate('author')
     .populate('tags')
@@ -155,7 +157,8 @@ export async function getRelatedPosts(
 
   const posts = await Post.find({
     slug: { $ne: postSlug },
-    category: categoryId,
+    categorySlug: categoryId,
+    status: 'published',
   })
     .populate('category')
     .populate('author')

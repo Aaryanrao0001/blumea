@@ -24,6 +24,8 @@ export default function PostEditorPage() {
     seoDescription: '',
     isFeatured: false,
     isPopular: false,
+    coverImageUrl: '',
+    coverImageAlt: '',
   });
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function PostEditorPage() {
           seoDescription: post.seoDescription || '',
           isFeatured: post.isFeatured || false,
           isPopular: post.isPopular || false,
+          coverImageUrl: post.images?.cover?.url || post.images?.featured?.url || '',
+          coverImageAlt: post.images?.cover?.alt || post.images?.featured?.alt || '',
         });
       }
     } catch (error) {
@@ -75,6 +79,16 @@ export default function PostEditorPage() {
       const payload = {
         ...formData,
         tagSlugs: tagSlugsArray,
+        images: {
+          cover: formData.coverImageUrl ? {
+            url: formData.coverImageUrl,
+            alt: formData.coverImageAlt || formData.title,
+          } : undefined,
+          featured: formData.coverImageUrl ? {
+            url: formData.coverImageUrl,
+            alt: formData.coverImageAlt || formData.title,
+          } : undefined,
+        },
         ...(isNew ? {} : { id: postId }),
       };
 
@@ -209,6 +223,52 @@ export default function PostEditorPage() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Images Section */}
+        <div className="bg-bg-secondary rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">Cover Image</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-text-secondary text-sm mb-2">Cover Image URL</label>
+              <input
+                type="url"
+                value={formData.coverImageUrl}
+                onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block text-text-secondary text-sm mb-2">Cover Image Alt Text</label>
+              <input
+                type="text"
+                value={formData.coverImageAlt}
+                onChange={(e) => setFormData({ ...formData, coverImageAlt: e.target.value })}
+                placeholder="Descriptive text for the image"
+                className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary"
+              />
+            </div>
+
+            {/* Image Preview */}
+            {formData.coverImageUrl && (
+              <div>
+                <label className="block text-text-secondary text-sm mb-2">Preview</label>
+                <div className="relative aspect-video rounded-lg overflow-hidden border border-border-subtle">
+                  <img
+                    src={formData.coverImageUrl}
+                    alt={formData.coverImageAlt || 'Preview'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://placehold.co/800x600/1A1A1A/D4AF37?text=Invalid+Image+URL';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
