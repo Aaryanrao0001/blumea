@@ -27,6 +27,7 @@ export default function PostEditorPage() {
     isPopular: false,
     coverImageUrl: '',
     coverImageAlt: '',
+    scheduledFor: '',
   });
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function PostEditorPage() {
           isPopular: post.isPopular || false,
           coverImageUrl: post.images?.cover?.url || post.images?.featured?.url || '',
           coverImageAlt: post.images?.cover?.alt || post.images?.featured?.alt || '',
+          scheduledFor: post.scheduledFor ? new Date(post.scheduledFor).toISOString().slice(0, 16) : '',
         });
       }
     } catch (error) {
@@ -91,6 +93,7 @@ export default function PostEditorPage() {
           cover: imageObject,
           featured: imageObject,
         },
+        scheduledFor: formData.scheduledFor ? new Date(formData.scheduledFor).toISOString() : undefined,
         ...(isNew ? {} : { id: postId }),
       };
 
@@ -180,6 +183,23 @@ export default function PostEditorPage() {
               </div>
             </div>
 
+            {/* Scheduling Field */}
+            {formData.status === 'scheduled' && (
+              <div>
+                <label className="block text-text-secondary text-sm mb-2">Schedule For *</label>
+                <input
+                  type="datetime-local"
+                  value={formData.scheduledFor}
+                  onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
+                  className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary"
+                  required={formData.status === 'scheduled'}
+                />
+                <p className="text-text-tertiary text-xs mt-1">
+                  Set status to &quot;Scheduled&quot; to auto-publish at this time. Cron job runs every 4 hours.
+                </p>
+              </div>
+            )}
+
             <div>
               <label className="block text-text-secondary text-sm mb-2">Excerpt *</label>
               <textarea
@@ -194,12 +214,54 @@ export default function PostEditorPage() {
             <div>
               <label className="block text-text-secondary text-sm mb-2">Body Content (Markdown) *</label>
               <textarea
+                id="bodyRaw"
                 value={formData.bodyRaw}
                 onChange={(e) => setFormData({ ...formData, bodyRaw: e.target.value })}
                 required
                 rows={15}
                 className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary font-mono text-sm"
               />
+              
+              {/* Image Insertion Helper */}
+              <div className="mt-3 p-4 bg-bg-tertiary rounded-md border border-border-subtle">
+                <h4 className="text-text-primary font-medium text-sm mb-2">💡 Insert Images</h4>
+                <p className="text-text-tertiary text-xs mb-3">
+                  Use markdown syntax: <code className="bg-bg-primary px-1 py-0.5 rounded text-accent">![alt text](image-url)</code>
+                </p>
+                
+                <details className="text-xs">
+                  <summary className="text-text-secondary cursor-pointer hover:text-text-primary mb-2">
+                    📁 Using Google Drive Images
+                  </summary>
+                  <ol className="list-decimal list-inside space-y-1 text-text-tertiary ml-2">
+                    <li>Upload image to Google Drive</li>
+                    <li>Right-click → Get link → Copy link</li>
+                    <li>Change sharing to &quot;Anyone with the link&quot;</li>
+                    <li>Convert: <code className="bg-bg-primary px-1 py-0.5 rounded">https://drive.google.com/file/d/FILE_ID/view</code></li>
+                    <li>To: <code className="bg-bg-primary px-1 py-0.5 rounded">https://drive.google.com/uc?export=view&id=FILE_ID</code></li>
+                  </ol>
+                </details>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = prompt('Enter image URL:');
+                    if (url) {
+                      const alt = prompt('Enter image alt text:', 'Image');
+                      const markdown = `![${alt || 'Image'}](${url})`;
+                      const textarea = document.getElementById('bodyRaw') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const text = textarea.value;
+                      const newText = text.substring(0, start) + '\n\n' + markdown + '\n\n' + text.substring(end);
+                      setFormData({ ...formData, bodyRaw: newText });
+                    }
+                  }}
+                  className="mt-3 px-3 py-1.5 bg-accent text-bg-primary rounded text-xs hover:bg-accent-hover transition-colors"
+                >
+                  Insert Image
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -260,6 +322,7 @@ export default function PostEditorPage() {
               <div>
                 <label className="block text-text-secondary text-sm mb-2">Preview</label>
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-border-subtle">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={formData.coverImageUrl}
                     alt={formData.coverImageAlt || 'Preview'}
