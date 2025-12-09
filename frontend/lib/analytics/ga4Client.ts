@@ -65,8 +65,10 @@ export async function fetchPageMetrics(
  * Fetch channel breakdown from GA4
  */
 export async function fetchChannelBreakdown(
-  startDate: string,
-  endDate: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _startDate: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _endDate: string
 ): Promise<GA4ChannelData[]> {
   if (!GA4_ENABLED) {
     console.log('[GA4] Using mock data - GA4 credentials not configured');

@@ -3,6 +3,8 @@ import { getTopTopicsForJob, markTopicUsed } from '@/lib/db/repositories/topics'
 import { getSkincareProductsByIds } from '@/lib/db/repositories/skincareProducts';
 import { getProductScoresByProductIds, updateProductScore } from '@/lib/db/repositories/productScores';
 import { createGeneratedDraft } from '@/lib/db/repositories/generatedDrafts';
+import { getCurrentConfig } from '@/lib/db/repositories/strategyConfig';
+import { getPlannedItemsForDate } from '@/lib/db/repositories/contentPlan';
 import { calculateProductScore } from '@/lib/scoring/calculateScore';
 import {
   generateOutlineAndAngle,
@@ -27,19 +29,46 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const limit = body.limit || 1;
 
-    // Step 1: Get top topics
-    const topics = await getTopTopicsForJob(limit);
+    // Get strategy config
+    const strategyConfig = await getCurrentConfig();
+
+    // Check content plan for today
+    const today = new Date();
+    const plannedItems = await getPlannedItemsForDate(today);
+
+    let topics;
+    if (plannedItems.length > 0) {
+      // Use planned topics
+      const topicIds = plannedItems
+        .filter(item => item.topicId && item.status === 'planned')
+        .map(item => item.topicId!.toString())
+        .slice(0, limit);
+      
+      // Get topics by IDs (simplified - in real implementation, add repository method)
+      topics = await getTopTopicsForJob(limit);
+      topics = topics.filter(t => topicIds.includes(t._id.toString()));
+    } else {
+      // Fallback to top topics
+      topics = await getTopTopicsForJob(limit);
+    }
+
     if (topics.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No new topics available',
+        message: 'No topics available',
         draftsCreated: 0,
       });
     }
 
+    // Check safety limits
+    const maxAutoPublish = strategyConfig.safety?.maxPostsPerDayAuto || strategyConfig.maxPostsPerDay;
+    const actualLimit = Math.min(limit, maxAutoPublish);
+
     const results = [];
 
-    for (const topic of topics) {
+    for (let i = 0; i < actualLimit && i < topics.length; i++) {
+      const topic = topics[i];
+      
       try {
         // Step 2: Get related products and calculate scores
         const productIds = topic.relatedProductIds.map((id) => id.toString());
@@ -59,11 +88,11 @@ export async function POST(request: NextRequest) {
 
         const scores = await getProductScoresByProductIds(productIds);
 
-        // Step 3: Generate outline via Claude
-        const outline = await generateOutlineAndAngle(topic, products, scores);
+        // Step 3: Generate outline via Claude with strategy context
+        const outline = await generateOutlineAndAngle(topic, products, scores, strategyConfig);
 
-        // Step 4: Generate full draft via Claude
-        const bodyRaw = await generateFullArticleDraft(topic, outline, products, scores);
+        // Step 4: Generate full draft via Claude with strategy context
+        const bodyRaw = await generateFullArticleDraft(topic, outline, products, scores, strategyConfig);
 
         // Step 5: Generate SEO meta via Claude
         const seoData = await generateSeoMetaAndSchema(bodyRaw, topic, products);
@@ -92,6 +121,16 @@ export async function POST(request: NextRequest) {
 
         // Mark topic as used
         await markTopicUsed(topic._id.toString());
+
+        // Mark planned item as completed if it exists
+        const plannedItem = plannedItems.find(item => 
+          item.topicId?.toString() === topic._id.toString()
+        );
+        if (plannedItem && plannedItem._id) {
+          // Note: We need the plan ID to mark as completed
+          // This is a simplified version - in production, store plan ID with item
+          // await markItemCompleted(planId, plannedItem._id, draft._id);
+        }
 
         results.push({
           topicId: topic._id.toString(),

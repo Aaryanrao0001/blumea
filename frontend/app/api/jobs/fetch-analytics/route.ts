@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { upsertMetrics } from '@/lib/db/repositories/postMetrics';
 import { upsertRevenue } from '@/lib/db/repositories/postRevenue';
 import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
-import { Types } from 'mongoose';
+import { fetchPageMetrics, fetchChannelBreakdown, fetchDeviceGeoData } from '@/lib/analytics/ga4Client';
+import { fetchSearchPerformance } from '@/lib/analytics/searchConsoleClient';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -17,15 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Implement actual GA4 API integration
-    // Example:
-    // - Fetch data from Google Analytics 4 API
-    // - Fetch affiliate data from affiliate network APIs
-    // - Process and store in PostMetrics and PostRevenue collections
+    // Get date range (yesterday)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startDate = yesterday.toISOString().split('T')[0];
+    const endDate = startDate;
 
-    // For now, fetch published posts to process (when API integration is done)
+    // Fetch published posts
     const { posts } = await getAllPostsPhase3({ status: 'published', limit: 100 });
-    const mockPostIds: Types.ObjectId[] = posts.map(p => p._id); // TODO: Get actual post IDs from database
 
     const results = {
       metricsImported: 0,
@@ -33,26 +33,70 @@ export async function POST(request: NextRequest) {
       errors: [] as string[],
     };
 
-    // Mock implementation - replace with actual API calls
-    for (const postId of mockPostIds) {
+    if (posts.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No published posts to process',
+        results,
+      });
+    }
+
+    // Get page paths for GA4 and Search Console
+    const pagePaths = posts.map(p => `/blog/${p.slug}`);
+
+    // Fetch GA4 data
+    const [pageMetrics, channelData, deviceGeoData] = await Promise.all([
+      fetchPageMetrics(startDate, endDate, pagePaths),
+      fetchChannelBreakdown(startDate, endDate),
+      fetchDeviceGeoData(startDate, endDate, pagePaths),
+    ]);
+
+    // Fetch Search Console data
+    const searchData = await fetchSearchPerformance(
+      startDate,
+      endDate,
+      pagePaths.map(p => `${process.env.NEXT_PUBLIC_SITE_URL}${p}`)
+    );
+
+    // Process each post
+    for (let i = 0; i < posts.length; i++) {
+      const post = posts[i];
+      const pagePath = pagePaths[i];
+
       try {
-        // TODO: Fetch actual GA4 metrics
-        await upsertMetrics({
-          postId,
-          date: new Date(),
-          pageViews: 0,
-          uniqueVisitors: 0,
-          avgTimeOnPage: 0,
-          bounceRate: 0,
-          scrollDepthAvg: 0,
-          socialShares: 0,
-        });
-        results.metricsImported++;
+        const pageMetric = pageMetrics.find(m => m.pagePath === pagePath);
+        const deviceGeo = deviceGeoData.find(d => d.pagePath === pagePath);
+        const search = searchData.find(s => s.url.includes(post.slug));
+
+        if (pageMetric) {
+          // Upsert metrics with enhanced data
+          await upsertMetrics({
+            postId: post._id,
+            date: yesterday,
+            pageViews: pageMetric.pageViews,
+            uniqueVisitors: pageMetric.uniqueVisitors,
+            sessions: pageMetric.sessions,
+            avgEngagedTime: pageMetric.avgEngagedTime,
+            bounceRate: pageMetric.bounceRate,
+            scrollDepthAvg: pageMetric.scrollDepthAvg,
+            scrollDepthP75: pageMetric.scrollDepthP75,
+            exitsFromPage: pageMetric.exitsFromPage,
+            mobileShare: deviceGeo?.mobileShare,
+            desktopShare: deviceGeo?.desktopShare,
+            topCountries: deviceGeo?.topCountries,
+            byChannel: channelData,
+            searchImpressions: search?.impressions,
+            searchClicks: search?.clicks,
+            searchCtr: search?.ctr,
+            avgPosition: search?.position,
+          });
+          results.metricsImported++;
+        }
 
         // TODO: Fetch actual affiliate revenue data
         await upsertRevenue({
-          postId,
-          date: new Date(),
+          postId: post._id,
+          date: yesterday,
           affiliateClicks: 0,
           conversions: 0,
           revenue: 0,
@@ -60,7 +104,7 @@ export async function POST(request: NextRequest) {
         });
         results.revenueImported++;
       } catch (error) {
-        results.errors.push(`Error processing post ${postId}: ${error}`);
+        results.errors.push(`Error processing post ${post._id}: ${error}`);
       }
     }
 
@@ -68,7 +112,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Analytics import job completed',
       results,
-      todo: 'Implement actual GA4 and affiliate API integration',
+      note: 'Using mock data until GA4 and Search Console credentials are configured',
     });
   } catch (error) {
     console.error('Error in fetch-analytics job:', error);

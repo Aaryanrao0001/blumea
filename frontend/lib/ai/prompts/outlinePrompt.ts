@@ -1,9 +1,11 @@
-import { ITopic, ISkincareProduct, IProductScore } from '@/lib/types';
+import { ITopic, ISkincareProduct, IProductScore, StrategyConfig } from '@/lib/types';
+import { buildStrategyContext } from './strategyContext';
 
 export function createOutlinePrompt(
   topic: ITopic,
   products: ISkincareProduct[],
-  scores: IProductScore[]
+  scores: IProductScore[],
+  strategyConfig?: StrategyConfig
 ): string {
   const productList = products
     .map((p) => {
@@ -12,7 +14,7 @@ export function createOutlinePrompt(
     })
     .join('\n');
 
-  return `You are an expert skincare content strategist creating an outline for a blog article.
+  let prompt = `You are an expert skincare content strategist creating an outline for a blog article.
 
 Topic: ${topic.title}
 Primary Keyword: ${topic.primaryKeyword}
@@ -21,7 +23,14 @@ Secondary Keywords: ${(topic.secondaryKeywords || []).join(', ')}
 Related Products:
 ${productList}
 
-Create a detailed article outline with 8-14 headings. The outline should:
+`;
+
+  // Add strategy context if provided
+  if (strategyConfig) {
+    prompt += buildStrategyContext(strategyConfig) + '\n\n';
+  }
+
+  prompt += `Create a detailed article outline with 8-14 headings. The outline should:
 1. Start with an engaging introduction hook
 2. Include educational sections about the topic
 3. Feature product recommendations where appropriate
@@ -36,4 +45,6 @@ The tone should be:
 - Friendly and approachable
 - Authoritative but not preachy
 - Inclusive of all skin types`;
+
+  return prompt;
 }

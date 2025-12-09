@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ITopic, ISkincareProduct, IProductScore } from '@/lib/types';
+import { ITopic, ISkincareProduct, IProductScore, StrategyConfig } from '@/lib/types';
 import { createOutlinePrompt } from './prompts/outlinePrompt';
 import { createDraftPrompt } from './prompts/draftPrompt';
 import { createSeoPrompt, SeoData } from './prompts/seoPrompt';
@@ -31,9 +31,10 @@ export async function testConnection(): Promise<{ success: boolean; message: str
 export async function generateOutlineAndAngle(
   topic: ITopic,
   products: ISkincareProduct[],
-  scores: IProductScore[]
+  scores: IProductScore[],
+  strategyConfig?: StrategyConfig
 ): Promise<string[]> {
-  const prompt = createOutlinePrompt(topic, products, scores);
+  const prompt = createOutlinePrompt(topic, products, scores, strategyConfig);
   
   const response = await anthropic.messages.create({
     model: CLAUDE_MODEL,
@@ -65,9 +66,10 @@ export async function generateFullArticleDraft(
   topic: ITopic,
   outline: string[],
   products: ISkincareProduct[],
-  scores: IProductScore[]
+  scores: IProductScore[],
+  strategyConfig?: StrategyConfig
 ): Promise<string> {
-  const prompt = createDraftPrompt(topic, outline, products, scores);
+  const prompt = createDraftPrompt(topic, outline, products, scores, strategyConfig);
   
   const response = await anthropic.messages.create({
     model: CLAUDE_MODEL,

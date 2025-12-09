@@ -97,11 +97,12 @@ export function buildStrategyContext(
     context += `### Patterns from Top-Performing Content:\n`;
     
     // Analyze common patterns
-    const avgWordCount = topPerformers.reduce((sum, post) => {
-      return sum + (post.wordCount || 0);
-    }, 0) / topPerformers.length;
-    
-    if (avgWordCount > 0) {
+    const postsWithWordCount = topPerformers.filter(p => (p as unknown as { wordCount?: number }).wordCount);
+    if (postsWithWordCount.length > 0) {
+      const avgWordCount = postsWithWordCount.reduce((sum, post) => {
+        return sum + ((post as unknown as { wordCount?: number }).wordCount || 0);
+      }, 0) / postsWithWordCount.length;
+      
       context += `- Top performers average ${Math.round(avgWordCount)} words\n`;
     }
     
