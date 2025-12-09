@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from './routes';
 
 // Simplified post type for schema generation (works with both mock and real data)
-interface PostForSchema {
+export interface PostForSchema {
   title: string;
   slug: string;
   type: 'blog' | 'review';
