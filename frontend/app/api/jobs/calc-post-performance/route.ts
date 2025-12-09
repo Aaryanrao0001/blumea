@@ -34,10 +34,11 @@ export async function POST(request: NextRequest) {
         // Calculate engagement score (0-100)
         let engagementScore = 0;
         if (metrics) {
-          const avgTimeScore = Math.min((metrics.avgTimeOnPage / 300) * 100, 100); // 5 min = 100
+          const avgTime = metrics.avgEngagedTime || metrics.avgTimeOnPage || 0;
+          const avgTimeScore = Math.min((avgTime / 300) * 100, 100); // 5 min = 100
           const bounceScore = (1 - metrics.bounceRate) * 100;
-          const scrollScore = metrics.scrollDepthAvg;
-          const shareScore = Math.min(metrics.socialShares * 10, 100);
+          const scrollScore = metrics.scrollDepthAvg * 100;
+          const shareScore = Math.min((metrics.socialShares || 0) * 10, 100);
           
           engagementScore = (avgTimeScore * 0.3 + bounceScore * 0.3 + scrollScore * 0.2 + shareScore * 0.2);
         }

@@ -316,13 +316,44 @@ export interface Post {
 export interface PostMetrics {
   _id: Types.ObjectId;
   postId: Types.ObjectId;
-  date: Date;
+  date: string | Date; // "2025-12-06" daily bucket (UTC) or Date object for backward compatibility
+
+  // Traffic
   pageViews: number;
   uniqueVisitors: number;
-  avgTimeOnPage: number;
-  bounceRate: number;
-  scrollDepthAvg: number;
-  socialShares: number;
+  sessions?: number;
+
+  // Engagement (legacy fields maintained)
+  avgTimeOnPage?: number;  // deprecated, use avgEngagedTime
+  avgEngagedTime?: number; // seconds (GA4 engagement time)
+  bounceRate: number;      // 0-1
+  scrollDepthAvg: number;  // 0-1
+  scrollDepthP75?: number; // 0-1
+  exitsFromPage?: number;
+  socialShares?: number;
+
+  // Devices & geo
+  mobileShare?: number;    // 0-1
+  desktopShare?: number;   // 0-1
+  topCountries?: {
+    countryCode: string;   // "US", "IN", etc.
+    share: number;         // 0-1
+  }[];
+
+  // Acquisition (from GA4)
+  byChannel?: {
+    channel: "organic_search" | "social" | "direct" | "email" | "referral" | "paid";
+    sessions: number;
+  }[];
+
+  // SEO (from Search Console)
+  searchImpressions?: number;
+  searchClicks?: number;
+  searchCtr?: number;
+  avgPosition?: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface PostRevenue {
@@ -338,32 +369,181 @@ export interface PostRevenue {
 export interface PostPerformance {
   _id: Types.ObjectId;
   postId: Types.ObjectId;
-  successScore: number;
-  engagementScore: number;
-  seoScore: number;
-  monetizationScore: number;
-  lastCalculated: Date;
+  window?: "7d" | "30d" | "90d";
+
+  engagementScore: number;      // 0-100
+  seoScore: number;             // 0-100
+  monetizationScore: number;    // 0-100
+  successScore: number;         // 0-100 overall
+
+  // Diagnostics
+  mainWeakness?: "traffic" | "engagement" | "conversion" | "seo" | "none";
+  mainStrength?: "traffic" | "engagement" | "conversion" | "seo" | "none";
+
+  lastCalculated?: Date;        // for backward compatibility
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface StrategyConfig {
   _id: Types.ObjectId;
+  version?: number;
+  createdAt?: Date;
+  updatedAt: Date;
+
+  // Global weights for success score
   weights: {
-    engagement: number;
-    seo: number;
-    monetization: number;
+    engagement: number;    // e.g., 0.4
+    seo: number;           // 0.3
+    monetization: number;  // 0.3
   };
+
+  // Content mix & volume
+  contentVolume?: {
+    maxPostsPerDay: number;
+    minPostsPerDay: number;
+    maxPostsPerWeek: number;
+    perType?: {
+      blog?: { minPerWeek: number; maxPerWeek: number };
+      review?: { minPerWeek: number; maxPerWeek: number };
+      comparison?: { minPerWeek: number; maxPerWeek: number };
+    };
+    perCategory?: {
+      [categorySlug: string]: { targetShare: number }; // e.g., 0.3 of posts
+    };
+  };
+
+  // Timing strategy
+  scheduling?: {
+    primaryTimezone?: string; // e.g., "America/New_York"
+    timeSlots?: {
+      slotId: string;
+      daysOfWeek: number[];        // 0-6
+      startHour: number;
+      endHour: number;
+      priorityFor: ("blog" | "review")[];
+    }[];
+    bestTimesByCategory?: {
+      [categorySlug: string]: {
+        dayOfWeek: number;
+        hour: number;
+        confidence: number;
+      }[];
+    };
+  };
+
+  // Topic preferences (enhanced)
   topicPreferences: {
     category: string;
     weight: number;
   }[];
+  topicPreferencesByCategory?: { [category: string]: number };
+  topicPreferencesByFormat?: {
+    routineGuide?: number;
+    comparison?: number;
+    deepDive?: number;
+    quickTips?: number;
+    listicle?: number;
+  };
+
+  // Content style & layout rules (enhanced for Claude)
   contentRules: {
     introMaxWords: number;
     faqCount: number;
     useComparisonTable: boolean;
     comparisonTableProbability: number;
+    bodyTargetWordCount?: {
+      blog?: number;
+      review?: number;
+      comparison?: number;
+      deepDive?: number;
+    };
+    includeRoutineSectionProbability?: number;
+    toneVariants?: {
+      calm_explainer?: number;
+      slightly_playful?: number;
+      clinical?: number;
+    };
   };
+
+  // Safety & review gates
+  safety?: {
+    autoPublishEnabled: boolean;
+    requireManualReviewForCategories?: string[];
+    maxPostsPerDayAuto?: number;
+    maxRiskTopicsPerWeek?: number;
+  };
+
+  // Experimentation preferences
+  experiments?: {
+    enableTitleABTest?: boolean;
+    enableCTAABTest?: boolean;
+    minImpressionsForDecision?: number;
+  };
+
+  // Refresh policy
+  refreshPolicy?: {
+    enableAutoRefresh?: boolean;
+    minDaysOld?: number;
+    minTrafficForRefresh?: number;
+    decayThreshold?: number;
+  };
+
+  // Legacy fields (backward compatibility)
   autoPublishEnabled: boolean;
   maxPostsPerDay: number;
   minSuccessScoreForRefresh: number;
+}
+
+// Phase 3: Content Planning
+
+export interface ContentPlanItem {
+  _id: Types.ObjectId;
+  scheduledDateTime: Date;
+  topicId?: Types.ObjectId;
+  postType: "blog" | "review" | "comparison";
+  categorySlug: string;
+  status: "planned" | "in_progress" | "completed" | "skipped";
+  generatedDraftId?: Types.ObjectId;
+  publishedPostId?: Types.ObjectId;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ContentPlan {
+  _id: Types.ObjectId;
+  weekStart: Date; // Monday of the week
+  weekEnd: Date;
+  items: ContentPlanItem[];
+  totalPlanned: number;
+  totalCompleted: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Phase 3: A/B Testing & Experiments
+
+export interface ExperimentVariant {
+  variantId: string; // "A", "B", "C"
+  value: string;     // The actual title/CTA text
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  engagementTime: number;
+}
+
+export interface PostExperiment {
+  _id: Types.ObjectId;
+  postId: Types.ObjectId;
+  experimentType: "title" | "cta" | "intro";
+  status: "running" | "concluded" | "cancelled";
+  variants: ExperimentVariant[];
+  winnerVariantId?: string;
+  startedAt: Date;
+  concludedAt?: Date;
+  minImpressionsPerVariant: number;
+  confidenceThreshold: number;
+  createdAt: Date;
   updatedAt: Date;
 }

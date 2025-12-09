@@ -1,10 +1,12 @@
-import { ITopic, ISkincareProduct, IProductScore } from '@/lib/types';
+import { ITopic, ISkincareProduct, IProductScore, StrategyConfig } from '@/lib/types';
+import { getToneInstruction } from './strategyContext';
 
 export function createDraftPrompt(
   topic: ITopic,
   outline: string[],
   products: ISkincareProduct[],
-  scores: IProductScore[]
+  scores: IProductScore[],
+  strategyConfig?: StrategyConfig
 ): string {
   const productDetails = products
     .map((p) => {
@@ -21,6 +23,18 @@ Price: ${p.price ? `${p.currency || '$'}${p.price}` : 'N/A'}`;
     })
     .join('\n---\n');
 
+  // Get word count target from strategy config
+  let targetWordCount = '1500-2500';
+  if (strategyConfig?.contentRules?.bodyTargetWordCount?.blog) {
+    const target = strategyConfig.contentRules.bodyTargetWordCount.blog;
+    targetWordCount = `${Math.round(target * 0.8)}-${Math.round(target * 1.2)}`;
+  }
+
+  // Get tone instruction from strategy config
+  const toneInstruction = strategyConfig 
+    ? getToneInstruction(strategyConfig)
+    : 'Write in a calm, science-based, friendly tone';
+
   return `You are an expert skincare writer for Blumea, a premium skincare blog. Write a comprehensive article following the provided outline.
 
 TOPIC: ${topic.title}
@@ -34,8 +48,8 @@ PRODUCT INFORMATION:
 ${productDetails}
 
 WRITING GUIDELINES:
-1. Write in a calm, science-based, friendly tone
-2. Target 1500-2500 words total
+1. ${toneInstruction}
+2. Target ${targetWordCount} words total
 3. Use proper HTML formatting (h2, h3, p, ul, li, strong, em)
 4. Include the primary keyword naturally 3-5 times
 5. Reference products authentically - don't oversell
@@ -44,6 +58,7 @@ WRITING GUIDELINES:
 8. Back up claims with scientific reasoning when possible
 9. Use engaging transitions between sections
 10. End with a clear takeaway or call-to-action
+${strategyConfig?.contentRules?.introMaxWords ? `11. Keep the introduction under ${strategyConfig.contentRules.introMaxWords} words` : ''}
 
 OUTPUT FORMAT:
 Return the full article body in HTML format. Do NOT include the title (h1) - start directly with the introduction paragraph.
