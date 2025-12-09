@@ -9,6 +9,9 @@ import { getAllCategories, getCategoryBySlug } from '@/lib/db/repositories/categ
 import { generatePageMetadata } from '@/lib/seo';
 import { convertPhase3PostToPostData } from '@/lib/utils';
 
+// Make this page dynamic since it fetches from database
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -30,13 +33,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: category.description || `Browse all ${category.title} posts`,
     path: `/category/${slug}`,
   });
-}
-
-export async function generateStaticParams() {
-  const categories = await getAllCategories();
-  return categories.map((category) => ({
-    slug: category.slug,
-  }));
 }
 
 export default async function CategoryPage({ params }: PageProps) {

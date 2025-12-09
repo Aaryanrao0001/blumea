@@ -15,6 +15,9 @@ import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata, generateBlogPostSchema, generateReviewSchema } from '@/lib/seo';
 import { getPlaceholderImage, convertPhase3PostToPostData } from '@/lib/utils';
 
+// Make this page dynamic since it fetches from database
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -44,13 +47,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
     modifiedTime: new Date(post.updatedAt).toISOString(),
   });
-}
-
-export async function generateStaticParams() {
-  const { posts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
