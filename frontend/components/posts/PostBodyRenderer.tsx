@@ -32,7 +32,7 @@ export function PostBodyRenderer({ content }: PostBodyRendererProps) {
         rehypePlugins={[rehypeRaw, rehypeSlug]}
         components={{
           // Custom link component with proper rel attributes
-          a: ({ node, ...props }: ComponentPropsWithoutRef<'a'>) => {
+          a: ({ ...props }: ComponentPropsWithoutRef<'a'>) => {
             const href = props.href || '';
             const isExternal = href.startsWith('http') && !href.includes(window?.location?.hostname || '');
             return (
@@ -44,8 +44,9 @@ export function PostBodyRenderer({ content }: PostBodyRendererProps) {
             );
           },
           // Custom image component with lazy loading
-          img: ({ node, ...props }: ComponentPropsWithoutRef<'img'>) => {
+          img: ({ ...props }: ComponentPropsWithoutRef<'img'>) => {
             return (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 {...props}
                 loading="lazy"
@@ -55,17 +56,17 @@ export function PostBodyRenderer({ content }: PostBodyRendererProps) {
             );
           },
           // Add custom heading components with anchor support
-          h1: ({ node, ...props }: ComponentPropsWithoutRef<'h1'>) => (
+          h1: ({ ...props }: ComponentPropsWithoutRef<'h1'>) => (
             <h1 {...props} className="group relative">
               {props.children}
             </h1>
           ),
-          h2: ({ node, ...props }: ComponentPropsWithoutRef<'h2'>) => (
+          h2: ({ ...props }: ComponentPropsWithoutRef<'h2'>) => (
             <h2 {...props} className="group relative">
               {props.children}
             </h2>
           ),
-          h3: ({ node, ...props }: ComponentPropsWithoutRef<'h3'>) => (
+          h3: ({ ...props }: ComponentPropsWithoutRef<'h3'>) => (
             <h3 {...props} className="group relative">
               {props.children}
             </h3>

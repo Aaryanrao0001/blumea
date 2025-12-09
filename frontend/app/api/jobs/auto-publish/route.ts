@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint for testing (no auth required in development)
-export async function GET(request: NextRequest) {
+export async function GET() {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
   }

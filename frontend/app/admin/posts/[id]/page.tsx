@@ -195,7 +195,7 @@ export default function PostEditorPage() {
                   required={formData.status === 'scheduled'}
                 />
                 <p className="text-text-tertiary text-xs mt-1">
-                  Set status to "Scheduled" to auto-publish at this time. Cron job runs every 4 hours.
+                  Set status to &quot;Scheduled&quot; to auto-publish at this time. Cron job runs every 4 hours.
                 </p>
               </div>
             )}
@@ -236,7 +236,7 @@ export default function PostEditorPage() {
                   <ol className="list-decimal list-inside space-y-1 text-text-tertiary ml-2">
                     <li>Upload image to Google Drive</li>
                     <li>Right-click → Get link → Copy link</li>
-                    <li>Change sharing to "Anyone with the link"</li>
+                    <li>Change sharing to &quot;Anyone with the link&quot;</li>
                     <li>Convert: <code className="bg-bg-primary px-1 py-0.5 rounded">https://drive.google.com/file/d/FILE_ID/view</code></li>
                     <li>To: <code className="bg-bg-primary px-1 py-0.5 rounded">https://drive.google.com/uc?export=view&id=FILE_ID</code></li>
                   </ol>
@@ -322,6 +322,7 @@ export default function PostEditorPage() {
               <div>
                 <label className="block text-text-secondary text-sm mb-2">Preview</label>
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-border-subtle">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={formData.coverImageUrl}
                     alt={formData.coverImageAlt || 'Preview'}

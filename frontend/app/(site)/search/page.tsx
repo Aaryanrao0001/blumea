@@ -113,7 +113,7 @@ export default function SearchPage() {
 
         {!loading && searched && results.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-text-secondary text-lg mb-2">No results found for "{query}"</p>
+            <p className="text-text-secondary text-lg mb-2">No results found for &quot;{query}&quot;</p>
             <p className="text-text-tertiary">Try different keywords or check your spelling</p>
           </div>
         )}
@@ -121,7 +121,7 @@ export default function SearchPage() {
         {!loading && results.length > 0 && (
           <div>
             <p className="text-text-secondary mb-6">
-              Found {results.length} result{results.length !== 1 ? 's' : ''} for "{query}"
+              Found {results.length} result{results.length !== 1 ? 's' : ''} for &quot;{query}&quot;
             </p>
 
             <div className="space-y-6">
@@ -135,6 +135,7 @@ export default function SearchPage() {
                     {/* Image */}
                     {post.images?.featured?.url && (
                       <div className="flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={post.images.featured.url}
                           alt={post.images.featured.alt || post.title}
