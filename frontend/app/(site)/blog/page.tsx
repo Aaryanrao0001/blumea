@@ -6,7 +6,7 @@ import { Breadcrumbs } from '@/components/posts/Breadcrumbs';
 import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
-import { convertPhase3PostToPostData } from '@/lib/utils';
+import { convertPhase3PostToPostData, serializePost } from '@/lib/utils';
 import { PostData, CategoryData } from '@/lib/types';
 
 export const metadata: Metadata = generatePageMetadata({
@@ -33,9 +33,9 @@ export default async function BlogPage() {
     const popularPostsRaw = allPostsRaw.filter(p => p.isPopular).slice(0, 5);
     categories = await getAllCategories();
 
-    // Convert to PostData format
-    allPosts = allPostsRaw.map(convertPhase3PostToPostData);
-    popularPosts = popularPostsRaw.map(convertPhase3PostToPostData);
+    // Convert to PostData format and serialize
+    allPosts = allPostsRaw.map(p => serializePost(convertPhase3PostToPostData(p)));
+    popularPosts = popularPostsRaw.map(p => serializePost(convertPhase3PostToPostData(p)));
   } catch (err) {
     console.error('Error loading blog posts:', err);
     error = 'Unable to load blog posts. Please try again later.';

@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/sidebar/Sidebar';
 import { getPostsForHome } from '@/lib/db/repositories/posts';
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
-import { convertPhase3PostToPostData } from '@/lib/utils';
+import { convertPhase3PostToPostData, serializePost } from '@/lib/utils';
 import { PostData, CategoryData } from '@/lib/types';
 
 export const metadata: Metadata = generatePageMetadata({
@@ -30,9 +30,9 @@ export default async function HomePage() {
     
     const featuredPostRaw = featured.length > 0 ? featured[0] : newPostsData.length > 0 ? newPostsData[0] : null;
     
-    featuredPost = featuredPostRaw ? convertPhase3PostToPostData(featuredPostRaw) : null;
-    popularPosts = popular.map(convertPhase3PostToPostData);
-    newPosts = newPostsData.map(convertPhase3PostToPostData);
+    featuredPost = featuredPostRaw ? serializePost(convertPhase3PostToPostData(featuredPostRaw)) : null;
+    popularPosts = popular.map(p => serializePost(convertPhase3PostToPostData(p)));
+    newPosts = newPostsData.map(p => serializePost(convertPhase3PostToPostData(p)));
     
     const allPostsMap = new Map();
     [...featured, ...popular, ...newPostsData].forEach(post => {
@@ -41,7 +41,7 @@ export default async function HomePage() {
         allPostsMap.set(id, post);
       }
     });
-    allPosts = Array.from(allPostsMap.values()).map(convertPhase3PostToPostData);
+    allPosts = Array.from(allPostsMap.values()).map(p => serializePost(convertPhase3PostToPostData(p)));
   } catch (err) {
     console.error('Error loading homepage data:', err);
     error = 'Unable to load content. Please try again later.';
