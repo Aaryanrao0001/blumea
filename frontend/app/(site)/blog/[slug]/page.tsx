@@ -10,7 +10,7 @@ import { RelatedPosts } from '@/components/posts/RelatedPosts';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { Pill } from '@/components/ui/Pill';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
+import { getAllPostsPhase3, getPostBySlugPhase3 } from '@/lib/db/repositories/posts';
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata, generateBlogPostSchema, generateReviewSchema } from '@/lib/seo';
 import { getPlaceholderImage, convertPhase3PostToPostData } from '@/lib/utils';
@@ -25,9 +25,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   
-  // Fetch the post
-  const { posts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
-  const post = posts.find(p => p.slug === slug);
+  // Fetch the post efficiently by slug
+  const post = await getPostBySlugPhase3(slug, 'published');
 
   if (!post) {
     return generatePageMetadata({
@@ -52,14 +51,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   
-  // Fetch the post
-  const { posts: allPosts } = await getAllPostsPhase3({ status: 'published', limit: 1000 });
-  const post = allPosts.find(p => p.slug === slug);
+  // Fetch the post efficiently by slug
+  const post = await getPostBySlugPhase3(slug, 'published');
 
   if (!post) {
     notFound();
   }
 
+  // Get all published posts for popular and related
+  const { posts: allPosts } = await getAllPostsPhase3({ status: 'published', limit: 100 });
+  
   // Get popular posts and categories
   const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
   const categories = await getAllCategories();

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { getPlaceholderImage } from '@/lib/utils';
 
 export default function PostEditorPage() {
   const params = useParams();
@@ -76,18 +77,17 @@ export default function PostEditorPage() {
         .map((tag) => tag.trim())
         .filter(Boolean);
 
+      const imageObject = formData.coverImageUrl ? {
+        url: formData.coverImageUrl,
+        alt: formData.coverImageAlt || formData.title,
+      } : undefined;
+
       const payload = {
         ...formData,
         tagSlugs: tagSlugsArray,
         images: {
-          cover: formData.coverImageUrl ? {
-            url: formData.coverImageUrl,
-            alt: formData.coverImageAlt || formData.title,
-          } : undefined,
-          featured: formData.coverImageUrl ? {
-            url: formData.coverImageUrl,
-            alt: formData.coverImageAlt || formData.title,
-          } : undefined,
+          cover: imageObject,
+          featured: imageObject,
         },
         ...(isNew ? {} : { id: postId }),
       };
@@ -263,7 +263,7 @@ export default function PostEditorPage() {
                     alt={formData.coverImageAlt || 'Preview'}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://placehold.co/800x600/1A1A1A/D4AF37?text=Invalid+Image+URL';
+                      e.currentTarget.src = getPlaceholderImage(800, 600);
                     }}
                   />
                 </div>

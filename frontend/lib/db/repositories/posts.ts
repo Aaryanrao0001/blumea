@@ -424,6 +424,17 @@ export async function getPostById(id: string | Types.ObjectId): Promise<PostPhas
   return post as unknown as PostPhase3 | null;
 }
 
+export async function getPostBySlugPhase3(
+  slug: string,
+  status: PostStatus = 'published'
+): Promise<PostPhase3 | null> {
+  await connectToDatabase();
+
+  const post = await Post.findOne({ slug, status }).lean();
+
+  return post as unknown as PostPhase3 | null;
+}
+
 export async function deletePost(id: string | Types.ObjectId): Promise<boolean> {
   await connectToDatabase();
 
@@ -449,12 +460,13 @@ export async function getAllPostsPhase3(options: {
   status?: PostStatus;
   postType?: PostType;
   source?: 'ai' | 'manual' | 'mixed';
+  categorySlug?: string;
   limit?: number;
   page?: number;
 } = {}): Promise<{ posts: PostPhase3[]; total: number }> {
   await connectToDatabase();
 
-  const { status, postType, source, limit = 10, page = 1 } = options;
+  const { status, postType, source, categorySlug, limit = 10, page = 1 } = options;
   const skip = (page - 1) * limit;
 
   const query: Record<string, unknown> = {};
@@ -462,6 +474,7 @@ export async function getAllPostsPhase3(options: {
   if (status) query.status = status;
   if (postType) query.postType = postType;
   if (source) query.source = source;
+  if (categorySlug) query.categorySlug = categorySlug;
 
   const [posts, total] = await Promise.all([
     Post.find(query)

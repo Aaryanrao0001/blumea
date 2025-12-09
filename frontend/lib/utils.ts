@@ -41,7 +41,11 @@ export function getPlaceholderImage(width: number, height: number): string {
 /**
  * Convert Phase 3 Post type to PostData format for components
  */
-export function convertPhase3PostToPostData(post: any): any {
+export function convertPhase3PostToPostData(post: Record<string, any>): Record<string, any> {
+  const getCoverImage = (post: Record<string, any>) => {
+    return post.images?.featured || post.images?.cover || post.images?.card || post.coverImage || { url: '', alt: post.title };
+  };
+
   return {
     _id: post._id,
     title: post.title,
@@ -49,7 +53,7 @@ export function convertPhase3PostToPostData(post: any): any {
     type: post.postType || post.type || 'blog',
     excerpt: post.excerpt,
     body: post.bodyRaw || post.body || '',
-    coverImage: post.images?.featured || post.images?.cover || post.images?.card || post.coverImage || { url: '', alt: post.title },
+    coverImage: getCoverImage(post),
     category: {
       _id: post.categorySlug || '',
       title: post.categorySlug || 'Uncategorized',

@@ -43,17 +43,21 @@ export default async function CategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch posts for this category
-  const { posts } = await getAllPostsPhase3({ 
+  // Fetch posts for this category efficiently using database query
+  const { posts: categoryPosts } = await getAllPostsPhase3({ 
+    status: 'published',
+    categorySlug: slug,
+    limit: 100 
+  });
+  
+  // Get all published posts for popular posts
+  const { posts: allPosts } = await getAllPostsPhase3({ 
     status: 'published',
     limit: 100 
   });
   
-  // Filter by category slug
-  const categoryPosts = posts.filter(p => p.categorySlug === slug);
-  
   // Get popular posts
-  const popularPosts = posts.filter(p => p.isPopular).slice(0, 5);
+  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
   const categories = await getAllCategories();
 
   // Convert to PostData format
