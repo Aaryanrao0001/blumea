@@ -191,7 +191,7 @@ export async function searchPosts(query: string): Promise<IPostPopulated[]> {
       return posts as unknown as IPostPopulated[];
     }
   } catch (error) {
-    console.log('Text search failed, falling back to regex search:', error);
+    console.error('Text search failed, falling back to regex search:', error);
   }
 
   // Fallback to regex search if text search fails or returns no results

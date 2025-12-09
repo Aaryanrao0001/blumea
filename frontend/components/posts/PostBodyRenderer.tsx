@@ -34,7 +34,10 @@ export function PostBodyRenderer({ content }: PostBodyRendererProps) {
           // Custom link component with proper rel attributes
           a: ({ ...props }: ComponentPropsWithoutRef<'a'>) => {
             const href = props.href || '';
-            const isExternal = href.startsWith('http') && !href.includes(window?.location?.hostname || '');
+            // Only check hostname on client side
+            const isExternal = typeof window !== 'undefined' 
+              ? href.startsWith('http') && !href.includes(window.location.hostname)
+              : href.startsWith('http');
             return (
               <a
                 {...props}
