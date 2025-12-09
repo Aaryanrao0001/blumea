@@ -3,8 +3,10 @@ import { MainContainer } from '@/components/layout/MainContainer';
 import { PostGrid } from '@/components/home/PostGrid';
 import { Sidebar } from '@/components/sidebar/Sidebar';
 import { Breadcrumbs } from '@/components/posts/Breadcrumbs';
-import { getAllPosts, getPopularPosts, getCategories } from '@/lib/mockData';
+import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
+import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
+import { convertPhase3PostToPostData } from '@/lib/utils';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Blog',
@@ -12,11 +14,21 @@ export const metadata: Metadata = generatePageMetadata({
   path: '/blog',
 });
 
-export default function BlogPage() {
-  const allPosts = getAllPosts();
-  const blogPosts = allPosts.filter((post) => post.type === 'blog');
-  const popularPosts = getPopularPosts(5);
-  const categories = getCategories();
+export default async function BlogPage() {
+  // Fetch published blog posts from database
+  const { posts: allPosts } = await getAllPostsPhase3({ 
+    status: 'published', 
+    postType: 'blog',
+    limit: 100 
+  });
+  
+  // Get popular posts (we'll just use the first 5 from all posts for now)
+  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
+  const categories = await getAllCategories();
+
+  // Convert to PostData format
+  const allPostsConverted = allPosts.map(convertPhase3PostToPostData);
+  const popularPostsConverted = popularPosts.map(convertPhase3PostToPostData);
 
   return (
     <MainContainer>
@@ -31,17 +43,23 @@ export default function BlogPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-9">
-          <PostGrid posts={blogPosts} columns={2} />
+      {allPostsConverted.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-text-secondary">No blog posts available yet.</p>
         </div>
-        <aside className="lg:col-span-3">
-          <Sidebar
-            popularPosts={popularPosts}
-            categories={categories}
-          />
-        </aside>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-9">
+            <PostGrid posts={allPostsConverted} columns={2} />
+          </div>
+          <aside className="lg:col-span-3">
+            <Sidebar
+              popularPosts={popularPostsConverted}
+              categories={categories}
+            />
+          </aside>
+        </div>
+      )}
     </MainContainer>
   );
 }
