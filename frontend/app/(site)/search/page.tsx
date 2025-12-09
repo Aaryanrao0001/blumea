@@ -47,6 +47,11 @@ export default function SearchPage() {
 
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      
+      if (!res.ok) {
+        throw new Error('Search request failed');
+      }
+      
       const data = await res.json();
 
       if (data.results) {
@@ -54,6 +59,8 @@ export default function SearchPage() {
       }
     } catch (error) {
       console.error('Search error:', error);
+      setResults([]);
+      // You could set an error state here if you want to show an error message to users
     } finally {
       setLoading(false);
     }

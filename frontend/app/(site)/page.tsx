@@ -8,6 +8,7 @@ import { getPostsForHome } from '@/lib/db/repositories/posts';
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
 import { convertPhase3PostToPostData } from '@/lib/utils';
+import { PostData, CategoryData } from '@/lib/types';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Premium Skincare Reviews & Beauty Insights',
@@ -16,27 +17,50 @@ export const metadata: Metadata = generatePageMetadata({
 });
 
 export default async function HomePage() {
-  // Fetch data from database
-  const { featured, popular, new: newPosts } = await getPostsForHome();
-  const categories = await getAllCategories();
-  
-  // Get featured post or fallback to first new post
-  const featuredPostRaw = featured.length > 0 ? featured[0] : newPosts.length > 0 ? newPosts[0] : null;
-  
-  // Convert to PostData format
-  const featuredPost = featuredPostRaw ? convertPhase3PostToPostData(featuredPostRaw) : null;
-  const popularPostsConverted = popular.map(convertPhase3PostToPostData);
-  const newPostsConverted = newPosts.map(convertPhase3PostToPostData);
-  
-  // Get all posts for the main grid (combine and dedupe)
-  const allPostsMap = new Map();
-  [...featured, ...popular, ...newPosts].forEach(post => {
-    const id = post._id?.toString();
-    if (id) {
-      allPostsMap.set(id, post);
-    }
-  });
-  const allPosts = Array.from(allPostsMap.values()).map(convertPhase3PostToPostData);
+  let featuredPost: PostData | null = null;
+  let popularPosts: PostData[] = [];
+  let newPosts: PostData[] = [];
+  let categories: CategoryData[] = [];
+  let allPosts: PostData[] = [];
+  let error: string | null = null;
+
+  try {
+    const { featured, popular, new: newPostsData } = await getPostsForHome();
+    categories = await getAllCategories();
+    
+    const featuredPostRaw = featured.length > 0 ? featured[0] : newPostsData.length > 0 ? newPostsData[0] : null;
+    
+    featuredPost = featuredPostRaw ? convertPhase3PostToPostData(featuredPostRaw) : null;
+    popularPosts = popular.map(convertPhase3PostToPostData);
+    newPosts = newPostsData.map(convertPhase3PostToPostData);
+    
+    const allPostsMap = new Map();
+    [...featured, ...popular, ...newPostsData].forEach(post => {
+      const id = post._id?.toString();
+      if (id) {
+        allPostsMap.set(id, post);
+      }
+    });
+    allPosts = Array.from(allPostsMap.values()).map(convertPhase3PostToPostData);
+  } catch (err) {
+    console.error('Error loading homepage data:', err);
+    error = 'Unable to load content. Please try again later.';
+  }
+
+  if (error) {
+    return (
+      <main className="flex-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-heading font-semibold text-text-primary mb-4">
+              Something went wrong
+            </h2>
+            <p className="text-text-secondary">{error}</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Handle empty database state
   if (!featuredPost) {
@@ -79,14 +103,14 @@ export default async function HomePage() {
           {/* Sidebar - Right */}
           <div className="lg:col-span-3">
             <Sidebar
-              popularPosts={popularPostsConverted.slice(0, 3)}
+              popularPosts={popularPosts.slice(0, 3)}
               categories={categories}
             />
           </div>
         </section>
 
         {/* New/Popular Strip */}
-        <NewPopularStrip newPosts={newPostsConverted} popularPosts={popularPostsConverted} />
+        <NewPopularStrip newPosts={newPosts} popularPosts={popularPosts} />
 
         {/* Main Content + Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-12">
@@ -98,7 +122,7 @@ export default async function HomePage() {
           {/* Sidebar */}
           <aside className="lg:col-span-3">
             <Sidebar
-              popularPosts={popularPostsConverted}
+              popularPosts={popularPosts}
               categories={categories}
               showSearch={false}
             />

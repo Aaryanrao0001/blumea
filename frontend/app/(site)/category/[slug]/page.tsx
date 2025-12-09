@@ -8,6 +8,7 @@ import { getAllPostsPhase3 } from '@/lib/db/repositories/posts';
 import { getAllCategories, getCategoryBySlug } from '@/lib/db/repositories/categories';
 import { generatePageMetadata } from '@/lib/seo';
 import { convertPhase3PostToPostData } from '@/lib/utils';
+import { PostData, CategoryData } from '@/lib/types';
 
 // Make this page dynamic since it fetches from database
 export const dynamic = 'force-dynamic';
@@ -37,32 +38,63 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  
+  let category;
+  let categoryPosts: PostData[] = [];
+  let popularPosts: PostData[] = [];
+  let categories: CategoryData[] = [];
+  let error: string | null = null;
 
-  if (!category) {
-    notFound();
+  try {
+    category = await getCategoryBySlug(slug);
+
+    if (!category) {
+      notFound();
+    }
+
+    // Fetch posts for this category efficiently using database query
+    const { posts: categoryPostsRaw } = await getAllPostsPhase3({ 
+      status: 'published',
+      categorySlug: slug,
+      limit: 100 
+    });
+    
+    // Get all published posts for popular posts
+    const { posts: allPosts } = await getAllPostsPhase3({ 
+      status: 'published',
+      limit: 100 
+    });
+    
+    // Get popular posts
+    const popularPostsRaw = allPosts.filter(p => p.isPopular).slice(0, 5);
+    categories = await getAllCategories();
+
+    // Convert to PostData format
+    categoryPosts = categoryPostsRaw.map(convertPhase3PostToPostData);
+    popularPosts = popularPostsRaw.map(convertPhase3PostToPostData);
+  } catch (err) {
+    console.error('Error loading category page:', err);
+    error = 'Unable to load category posts. Please try again later.';
   }
 
-  // Fetch posts for this category efficiently using database query
-  const { posts: categoryPosts } = await getAllPostsPhase3({ 
-    status: 'published',
-    categorySlug: slug,
-    limit: 100 
-  });
-  
-  // Get all published posts for popular posts
-  const { posts: allPosts } = await getAllPostsPhase3({ 
-    status: 'published',
-    limit: 100 
-  });
-  
-  // Get popular posts
-  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
-  const categories = await getAllCategories();
-
-  // Convert to PostData format
-  const categoryPostsConverted = categoryPosts.map(convertPhase3PostToPostData);
-  const popularPostsConverted = popularPosts.map(convertPhase3PostToPostData);
+  if (error) {
+    return (
+      <MainContainer>
+        <Breadcrumbs
+          items={[
+            { label: 'Categories', href: '/blog' },
+            { label: category?.title || 'Category' },
+          ]}
+        />
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-heading font-semibold text-text-primary mb-4">
+            Something went wrong
+          </h2>
+          <p className="text-text-secondary">{error}</p>
+        </div>
+      </MainContainer>
+    );
+  }
 
   return (
     <MainContainer>
@@ -83,22 +115,22 @@ export default async function CategoryPage({ params }: PageProps) {
           </p>
         )}
         <p className="text-text-tertiary mt-2">
-          {categoryPostsConverted.length} {categoryPostsConverted.length === 1 ? 'post' : 'posts'}
+          {categoryPosts.length} {categoryPosts.length === 1 ? 'post' : 'posts'}
         </p>
       </header>
 
-      {categoryPostsConverted.length === 0 ? (
+      {categoryPosts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-secondary">No posts in this category yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-9">
-            <PostGrid posts={categoryPostsConverted} columns={2} />
+            <PostGrid posts={categoryPosts} columns={2} />
           </div>
           <aside className="lg:col-span-3">
             <Sidebar
-              popularPosts={popularPostsConverted}
+              popularPosts={popularPosts}
               categories={categories}
             />
           </aside>

@@ -51,24 +51,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   
-  // Fetch the post efficiently by slug
-  const post = await getPostBySlugPhase3(slug, 'published');
+  let post;
+  let allPosts;
+  let popularPosts;
+  let categories;
+  let relatedPosts;
+  
+  try {
+    // Fetch the post efficiently by slug
+    post = await getPostBySlugPhase3(slug, 'published');
 
-  if (!post) {
+    if (!post) {
+      notFound();
+    }
+
+    // Get all published posts for popular and related
+    const { posts: allPostsRaw } = await getAllPostsPhase3({ status: 'published', limit: 100 });
+    allPosts = allPostsRaw;
+    
+    // Get popular posts and categories
+    popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
+    categories = await getAllCategories();
+    
+    // Get related posts (same category, excluding current)
+    relatedPosts = allPosts
+      .filter(p => p.slug !== post.slug && p.categorySlug === post.categorySlug)
+      .slice(0, 3);
+  } catch (err) {
+    console.error('Error loading blog post:', err);
     notFound();
   }
-
-  // Get all published posts for popular and related
-  const { posts: allPosts } = await getAllPostsPhase3({ status: 'published', limit: 100 });
-  
-  // Get popular posts and categories
-  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
-  const categories = await getAllCategories();
-  
-  // Get related posts (same category, excluding current)
-  const relatedPosts = allPosts
-    .filter(p => p.slug !== post.slug && p.categorySlug === post.categorySlug)
-    .slice(0, 3);
 
   const categoryTitle = post.categorySlug || 'Uncategorized';
 
