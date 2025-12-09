@@ -8,7 +8,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const CLAUDE_MODEL = "claude-3-5-sonnet-latest";
+const CLAUDE_MODEL = "claude-3-haiku-20240307";
 
 export async function testConnection(): Promise<{ success: boolean; message: string }> {
   try {
