@@ -39,19 +39,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
   
-  let category;
   let categoryPosts: PostData[] = [];
   let popularPosts: PostData[] = [];
   let categories: CategoryData[] = [];
   let error: string | null = null;
 
+  const category = await getCategoryBySlug(slug);
+
+  if (!category) {
+    notFound();
+  }
+
   try {
-    category = await getCategoryBySlug(slug);
-
-    if (!category) {
-      notFound();
-    }
-
     // Fetch posts for this category efficiently using database query
     const { posts: categoryPostsRaw } = await getAllPostsPhase3({ 
       status: 'published',
@@ -83,7 +82,7 @@ export default async function CategoryPage({ params }: PageProps) {
         <Breadcrumbs
           items={[
             { label: 'Categories', href: '/blog' },
-            { label: category?.title || 'Category' },
+            { label: category.title },
           ]}
         />
         <div className="text-center py-12">

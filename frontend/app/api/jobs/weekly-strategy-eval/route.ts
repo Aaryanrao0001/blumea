@@ -44,11 +44,19 @@ export async function POST(request: NextRequest) {
     const aiInsights = await generateStrategyInsights(analysisData);
 
     // Update strategy config with AI recommendations
-    const updatedConfig = await updateConfig({
+    const configUpdate: Partial<Omit<typeof currentConfig, '_id'>> = {
       ...currentConfig,
       weights: aiInsights.recommendedWeights || currentConfig.weights,
-      contentRules: aiInsights.contentRuleAdjustments || currentConfig.contentRules,
-    });
+    };
+    
+    // Only update contentRules if AI provides valid adjustments
+    if (aiInsights.contentRuleAdjustments && 
+        typeof aiInsights.contentRuleAdjustments === 'object' &&
+        'introMaxWords' in aiInsights.contentRuleAdjustments) {
+      configUpdate.contentRules = aiInsights.contentRuleAdjustments as typeof currentConfig.contentRules;
+    }
+    
+    const updatedConfig = await updateConfig(configUpdate);
 
     return NextResponse.json({
       success: true,
@@ -65,7 +73,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateAverageScores(topPosts: any[], bottomPosts: any[]) {
+function calculateAverageScores(topPosts: {
+  successScore: number;
+  engagementScore: number;
+  seoScore: number;
+  monetizationScore: number;
+}[], bottomPosts: {
+  successScore: number;
+  engagementScore: number;
+  seoScore: number;
+  monetizationScore: number;
+}[]) {
   // Calculate average scores for analysis
   const allPosts = [...topPosts, ...bottomPosts];
   if (allPosts.length === 0) return null;

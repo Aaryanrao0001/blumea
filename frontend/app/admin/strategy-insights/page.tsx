@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface StrategyInsights {
   summary: string;
   recommendations: string[];
   recommendedWeights: { engagement: number; seo: number; monetization: number } | null;
-  contentRuleAdjustments: any;
+  contentRuleAdjustments: Record<string, unknown> | null;
   weeklyFocus: string;
 }
 

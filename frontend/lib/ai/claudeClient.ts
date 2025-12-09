@@ -84,16 +84,31 @@ export async function generateFullArticleDraft(
 }
 
 export async function generateStrategyInsights(analysisData: {
-  topPerformers: any[];
-  bottomPerformers: any[];
+  topPerformers: {
+    successScore: number;
+    engagementScore: number;
+    seoScore: number;
+    monetizationScore: number;
+  }[];
+  bottomPerformers: {
+    successScore: number;
+    engagementScore: number;
+    seoScore: number;
+    monetizationScore: number;
+  }[];
   currentWeights: { engagement: number; seo: number; monetization: number };
   totalPosts: number;
-  avgScores: any;
+  avgScores: {
+    avgSuccessScore: number;
+    avgEngagement: number;
+    avgSeo: number;
+    avgMonetization: number;
+  } | null;
 }): Promise<{
   summary: string;
   recommendations: string[];
   recommendedWeights: { engagement: number; seo: number; monetization: number } | null;
-  contentRuleAdjustments: any;
+  contentRuleAdjustments: Record<string, unknown> | null;
   weeklyFocus: string;
 }> {
   const prompt = `You are an AI content strategist analyzing blog performance data. 
