@@ -4,7 +4,6 @@ import { Clock } from 'lucide-react';
 import { Pill } from '@/components/ui/Pill';
 import { PostData } from '@/lib/types';
 import { getPlaceholderImage } from '@/lib/utils';
-import { convertGoogleDriveUrl } from '@/lib/imageUtils';
 
 interface PopularPostsWidgetProps {
   posts: PostData[];
@@ -29,7 +28,7 @@ export function PopularPostsWidget({ posts }: PopularPostsWidgetProps) {
           >
             <div className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden">
               <Image
-                src={convertGoogleDriveUrl(post.coverImage?.url || getPlaceholderImage(64, 64))}
+                src={post.coverImage?.url || getPlaceholderImage(64, 64)}
                 alt={post.coverImage?.alt || post.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"

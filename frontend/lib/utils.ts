@@ -64,7 +64,7 @@ export function convertPhase3PostToPostData(post: Record<string, any>): Converte
     const imageObj = post.images?.featured || post.images?.cover || post.images?.card || post.coverImage || { url: '', alt: post.title };
     // Convert Google Drive URLs to direct image URLs
     if (imageObj?.url) {
-      imageObj.url = convertGoogleDriveUrl(imageObj.url);
+      return { ...imageObj, url: convertGoogleDriveUrl(imageObj.url) };
     }
     return imageObj;
   };
