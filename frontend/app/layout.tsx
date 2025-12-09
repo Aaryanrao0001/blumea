@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/routes';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -77,6 +78,7 @@ export default function RootLayout({
           `}
         </Script>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
