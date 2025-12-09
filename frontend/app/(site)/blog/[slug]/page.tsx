@@ -13,7 +13,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { getAllPostsPhase3, getPostBySlugPhase3 } from '@/lib/db/repositories/posts';
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata, generateBlogPostSchema, generateReviewSchema } from '@/lib/seo';
-import { getPlaceholderImage, convertPhase3PostToPostData } from '@/lib/utils';
+import { getPlaceholderImage, convertPhase3PostToPostData, serializePost } from '@/lib/utils';
 
 // Make this page dynamic since it fetches from database
 export const dynamic = 'force-dynamic';
@@ -99,9 +99,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       ? generateReviewSchema(postForSchema)
       : generateBlogPostSchema(postForSchema);
   
-  // Convert posts for components
-  const popularPostsConverted = popularPosts.map(convertPhase3PostToPostData);
-  const relatedPostsConverted = relatedPosts.map(convertPhase3PostToPostData);
+  // Convert and serialize posts for components
+  const popularPostsConverted = popularPosts.map(p => serializePost(convertPhase3PostToPostData(p)));
+  const relatedPostsConverted = relatedPosts.map(p => serializePost(convertPhase3PostToPostData(p)));
 
   return (
     <>

@@ -52,6 +52,33 @@ export function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength).trim() + '...';
 }
 
+/**
+ * Serialize a post for client components by converting ObjectIds and Dates to strings
+ */
+export function serializePost(post: any): any {
+  if (!post) return post;
+  
+  return {
+    ...post,
+    _id: post._id?.toString ? post._id.toString() : post._id,
+    publishedAt: post.publishedAt instanceof Date ? post.publishedAt.toISOString() : post.publishedAt,
+    updatedAt: post.updatedAt instanceof Date ? post.updatedAt.toISOString() : post.updatedAt,
+    createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt,
+    category: post.category ? {
+      ...post.category,
+      _id: post.category._id?.toString ? post.category._id.toString() : post.category._id,
+    } : post.category,
+    tags: post.tags?.map((tag: any) => ({
+      ...tag,
+      _id: tag._id?.toString ? tag._id.toString() : tag._id,
+    })) || [],
+    author: post.author ? {
+      ...post.author,
+      _id: post.author._id?.toString ? post.author._id.toString() : post.author._id,
+    } : post.author,
+  };
+}
+
 export function getPlaceholderImage(width: number, height: number): string {
   return `https://placehold.co/${width}x${height}/1A1A1A/D4AF37?text=Blumea`;
 }
@@ -70,7 +97,7 @@ export function convertPhase3PostToPostData(post: Record<string, any>): Converte
   };
 
   return {
-    _id: post._id,
+    _id: post._id?.toString() || post._id,
     title: post.title,
     slug: post.slug,
     type: post.postType || post.type || 'blog',
