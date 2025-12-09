@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getPlaceholderImage } from '@/lib/utils';
+import { convertGoogleDriveUrl } from '@/lib/imageUtils';
 
 export default function PostEditorPage() {
   const params = useParams();
@@ -81,8 +82,9 @@ export default function PostEditorPage() {
 
       // Use the same image for both cover and featured slots
       // This simplifies the UX while maintaining compatibility with the Phase 3 schema
+      // Convert Google Drive URLs to direct image URLs before saving
       const imageObject = formData.coverImageUrl ? {
-        url: formData.coverImageUrl,
+        url: convertGoogleDriveUrl(formData.coverImageUrl),
         alt: formData.coverImageAlt || formData.title,
       } : undefined;
 

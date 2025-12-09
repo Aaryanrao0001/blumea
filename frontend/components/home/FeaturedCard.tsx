@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { PostData } from '@/lib/types';
 import { getPlaceholderImage, truncateText } from '@/lib/utils';
+import { convertGoogleDriveUrl } from '@/lib/imageUtils';
 
 interface FeaturedCardProps {
   post: PostData;
@@ -21,7 +22,7 @@ export function FeaturedCard({ post }: FeaturedCardProps) {
     >
       {/* Background Image */}
       <Image
-        src={post.coverImage?.url || getPlaceholderImage(600, 500)}
+        src={convertGoogleDriveUrl(post.coverImage?.url || getPlaceholderImage(600, 500))}
         alt={post.coverImage?.alt || post.title}
         fill
         className="object-cover transition-transform duration-700 group-hover:scale-105"

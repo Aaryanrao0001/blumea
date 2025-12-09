@@ -8,6 +8,7 @@ import { Pill } from '@/components/ui/Pill';
 import { StarRating } from '@/components/ui/StarRating';
 import { PostData } from '@/lib/types';
 import { formatDate, getPlaceholderImage, truncateText } from '@/lib/utils';
+import { convertGoogleDriveUrl } from '@/lib/imageUtils';
 
 interface PostCardProps {
   post: PostData;
@@ -32,7 +33,7 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
           className="relative w-32 h-24 flex-shrink-0"
         >
           <Image
-            src={post.coverImage?.url || getPlaceholderImage(128, 96)}
+            src={convertGoogleDriveUrl(post.coverImage?.url || getPlaceholderImage(128, 96))}
             alt={post.coverImage?.alt || post.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -68,7 +69,7 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
           className="relative w-16 h-16 flex-shrink-0 rounded overflow-hidden"
         >
           <Image
-            src={post.coverImage?.url || getPlaceholderImage(64, 64)}
+            src={convertGoogleDriveUrl(post.coverImage?.url || getPlaceholderImage(64, 64))}
             alt={post.coverImage?.alt || post.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -103,7 +104,7 @@ export function PostCard({ post, variant = 'default' }: PostCardProps) {
         className="block relative h-48 overflow-hidden"
       >
         <Image
-          src={post.coverImage?.url || getPlaceholderImage(400, 300)}
+          src={convertGoogleDriveUrl(post.coverImage?.url || getPlaceholderImage(400, 300))}
           alt={post.coverImage?.alt || post.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
