@@ -56,7 +56,8 @@ export function truncateText(text: string, maxLength: number): string {
  * Helper to safely convert ObjectId to string
  */
 function serializeObjectId(id: any): string {
-  return id?.toString ? id.toString() : id;
+  if (!id) return '';
+  return id.toString ? id.toString() : String(id);
 }
 
 /**
