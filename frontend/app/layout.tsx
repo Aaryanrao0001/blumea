@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/routes';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -62,6 +63,19 @@ export default function RootLayout({
       <body
         className="font-body antialiased bg-bg-primary text-text-primary min-h-screen flex flex-col"
       >
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-0FZVHEXGDX"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-0FZVHEXGDX');
+          `}
+        </Script>
         {children}
       </body>
     </html>

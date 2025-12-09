@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { getPlaceholderImage } from '@/lib/utils';
 
 export default function PostEditorPage() {
   const params = useParams();
@@ -24,6 +25,8 @@ export default function PostEditorPage() {
     seoDescription: '',
     isFeatured: false,
     isPopular: false,
+    coverImageUrl: '',
+    coverImageAlt: '',
   });
 
   useEffect(() => {
@@ -53,6 +56,8 @@ export default function PostEditorPage() {
           seoDescription: post.seoDescription || '',
           isFeatured: post.isFeatured || false,
           isPopular: post.isPopular || false,
+          coverImageUrl: post.images?.cover?.url || post.images?.featured?.url || '',
+          coverImageAlt: post.images?.cover?.alt || post.images?.featured?.alt || '',
         });
       }
     } catch (error) {
@@ -72,9 +77,20 @@ export default function PostEditorPage() {
         .map((tag) => tag.trim())
         .filter(Boolean);
 
+      // Use the same image for both cover and featured slots
+      // This simplifies the UX while maintaining compatibility with the Phase 3 schema
+      const imageObject = formData.coverImageUrl ? {
+        url: formData.coverImageUrl,
+        alt: formData.coverImageAlt || formData.title,
+      } : undefined;
+
       const payload = {
         ...formData,
         tagSlugs: tagSlugsArray,
+        images: {
+          cover: imageObject,
+          featured: imageObject,
+        },
         ...(isNew ? {} : { id: postId }),
       };
 
@@ -209,6 +225,52 @@ export default function PostEditorPage() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Images Section */}
+        <div className="bg-bg-secondary rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">Cover Image</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-text-secondary text-sm mb-2">Cover Image URL</label>
+              <input
+                type="url"
+                value={formData.coverImageUrl}
+                onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block text-text-secondary text-sm mb-2">Cover Image Alt Text</label>
+              <input
+                type="text"
+                value={formData.coverImageAlt}
+                onChange={(e) => setFormData({ ...formData, coverImageAlt: e.target.value })}
+                placeholder="Descriptive text for the image"
+                className="w-full bg-bg-tertiary border border-border-subtle rounded-md px-4 py-2.5 text-text-primary"
+              />
+            </div>
+
+            {/* Image Preview */}
+            {formData.coverImageUrl && (
+              <div>
+                <label className="block text-text-secondary text-sm mb-2">Preview</label>
+                <div className="relative aspect-video rounded-lg overflow-hidden border border-border-subtle">
+                  <img
+                    src={formData.coverImageUrl}
+                    alt={formData.coverImageAlt || 'Preview'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = getPlaceholderImage(800, 600);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
