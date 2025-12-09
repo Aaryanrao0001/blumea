@@ -41,17 +41,8 @@ export async function createStrategyConfig(data: Omit<StrategyConfig, '_id'>): P
   return config.toObject() as StrategyConfig;
 }
 
-export async function updateStrategyConfig(data: Partial<Omit<StrategyConfig, '_id'>>): Promise<StrategyConfig | null> {
-  await connectToDatabase();
-  
-  const config = await StrategyConfigModel.findOneAndUpdate(
-    {},
-    { ...data, updatedAt: new Date() },
-    { new: true, upsert: true }
-  ).lean();
-  
-  return config as StrategyConfig | null;
-}
+// Alias for backward compatibility
+export const updateStrategyConfig = updateConfig;
 
 export async function getOrCreateStrategyConfig(): Promise<StrategyConfig> {
   await connectToDatabase();

@@ -9,7 +9,14 @@ const CRON_SECRET = process.env.CRON_SECRET;
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
-    if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    
+    // Require CRON_SECRET to be set
+    if (!CRON_SECRET) {
+      console.error('CRON_SECRET is not configured');
+      return NextResponse.json({ success: false, message: 'Service not configured' }, { status: 503 });
+    }
+    
+    if (authHeader !== `Bearer ${CRON_SECRET}`) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -49,10 +56,13 @@ export async function POST(request: NextRequest) {
       weights: aiInsights.recommendedWeights || currentConfig.weights,
     };
     
-    // Only update contentRules if AI provides valid adjustments
+    // Only update contentRules if AI provides valid adjustments with all required fields
     if (aiInsights.contentRuleAdjustments && 
         typeof aiInsights.contentRuleAdjustments === 'object' &&
-        'introMaxWords' in aiInsights.contentRuleAdjustments) {
+        'introMaxWords' in aiInsights.contentRuleAdjustments &&
+        'faqCount' in aiInsights.contentRuleAdjustments &&
+        'useComparisonTable' in aiInsights.contentRuleAdjustments &&
+        'comparisonTableProbability' in aiInsights.contentRuleAdjustments) {
       configUpdate.contentRules = aiInsights.contentRuleAdjustments as typeof currentConfig.contentRules;
     }
     

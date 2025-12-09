@@ -14,7 +14,6 @@ import { getAllPostsPhase3, getPostBySlugPhase3 } from '@/lib/db/repositories/po
 import { getAllCategories } from '@/lib/db/repositories/categories';
 import { generatePageMetadata, generateBlogPostSchema, generateReviewSchema } from '@/lib/seo';
 import { getPlaceholderImage, convertPhase3PostToPostData } from '@/lib/utils';
-import { Post } from '@/lib/types';
 
 // Make this page dynamic since it fetches from database
 export const dynamic = 'force-dynamic';
@@ -76,11 +75,11 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
   
   // Get popular posts and related posts
-  const popularPosts = allPosts.filter((p: Post) => p.isPopular).slice(0, 5);
+  const popularPosts = allPosts.filter(p => p.isPopular).slice(0, 5);
   
   // Get related posts (same category, excluding current)
   const relatedPosts = allPosts
-    .filter((p: Post) => p.slug !== post.slug && p.categorySlug === post.categorySlug)
+    .filter(p => p.slug !== post.slug && p.categorySlug === post.categorySlug)
     .slice(0, 3);
 
   const categoryTitle = post.categorySlug || 'Uncategorized';
