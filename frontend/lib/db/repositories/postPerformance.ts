@@ -30,7 +30,7 @@ export async function upsertPerformance(data: Omit<PostPerformance, '_id'>): Pro
   
   const performance = await PostPerformanceModel.findOneAndUpdate(
     { postId: data.postId, window },
-    { ...data, lastCalculated: new Date() },
+    { ...data, window, lastCalculated: new Date() },
     { upsert: true, new: true }
   ).lean();
   

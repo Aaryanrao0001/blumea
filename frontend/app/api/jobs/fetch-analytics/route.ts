@@ -52,10 +52,11 @@ export async function POST(request: NextRequest) {
     ]);
 
     // Fetch Search Console data
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blumea.me';
     const searchData = await fetchSearchPerformance(
       startDate,
       endDate,
-      pagePaths.map(p => `${process.env.NEXT_PUBLIC_SITE_URL}${p}`)
+      pagePaths.map(p => `${siteUrl}${p}`)
     );
 
     // Process each post

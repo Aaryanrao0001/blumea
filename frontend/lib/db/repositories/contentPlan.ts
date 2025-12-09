@@ -37,17 +37,35 @@ export async function updatePlanItem(
 ): Promise<ContentPlan | null> {
   await connectToDatabase();
   
+  // Whitelist allowed update fields
+  const allowedFields = [
+    'scheduledDateTime',
+    'topicId',
+    'postType',
+    'categorySlug',
+    'status',
+    'generatedDraftId',
+    'publishedPostId',
+    'notes',
+    'updatedAt'
+  ];
+  
+  const updateFields: Record<string, unknown> = {};
+  for (const key of allowedFields) {
+    if (key in data) {
+      updateFields[`items.$.${key}`] = data[key as keyof ContentPlanItem];
+    }
+  }
+  
+  // Always update the updatedAt timestamp
+  updateFields['items.$.updatedAt'] = new Date();
+  
   const plan = await ContentPlanModel.findOneAndUpdate(
     {
       _id: new Types.ObjectId(planId.toString()),
       'items._id': new Types.ObjectId(itemId.toString()),
     },
-    {
-      $set: Object.keys(data).reduce((acc, key) => {
-        acc[`items.$.${key}`] = data[key as keyof ContentPlanItem];
-        return acc;
-      }, {} as Record<string, unknown>),
-    },
+    { $set: updateFields },
     { new: true }
   ).lean();
   

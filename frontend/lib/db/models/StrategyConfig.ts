@@ -120,7 +120,7 @@ const StrategyConfigSchema = new Schema<IStrategyConfigDocument>(
     autoPublishEnabled: { type: Boolean, required: true, default: false },
     maxPostsPerDay: { type: Number, required: true, default: 3 },
     minSuccessScoreForRefresh: { type: Number, required: true, default: 50 },
-    updatedAt: { type: Date, required: true, default: Date.now },
+    // Note: updatedAt is handled by timestamps: true option
   },
   {
     timestamps: true,
