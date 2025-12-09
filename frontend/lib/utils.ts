@@ -53,6 +53,13 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 /**
+ * Helper to safely convert ObjectId to string
+ */
+function serializeObjectId(id: any): string {
+  return id?.toString ? id.toString() : id;
+}
+
+/**
  * Serialize a post for client components by converting ObjectIds and Dates to strings
  */
 export function serializePost(post: any): any {
@@ -60,21 +67,21 @@ export function serializePost(post: any): any {
   
   return {
     ...post,
-    _id: post._id?.toString ? post._id.toString() : post._id,
+    _id: serializeObjectId(post._id),
     publishedAt: post.publishedAt instanceof Date ? post.publishedAt.toISOString() : post.publishedAt,
     updatedAt: post.updatedAt instanceof Date ? post.updatedAt.toISOString() : post.updatedAt,
     createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt,
     category: post.category ? {
       ...post.category,
-      _id: post.category._id?.toString ? post.category._id.toString() : post.category._id,
+      _id: serializeObjectId(post.category._id),
     } : post.category,
     tags: post.tags?.map((tag: any) => ({
       ...tag,
-      _id: tag._id?.toString ? tag._id.toString() : tag._id,
+      _id: serializeObjectId(tag._id),
     })) || [],
     author: post.author ? {
       ...post.author,
-      _id: post.author._id?.toString ? post.author._id.toString() : post.author._id,
+      _id: serializeObjectId(post.author._id),
     } : post.author,
   };
 }
