@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { PostForSchema } from './seo';
+import { convertGoogleDriveUrl } from './imageUtils';
 
 // Simple cn function without tailwind-merge for minimal dependencies
 export function cn(...inputs: ClassValue[]) {
@@ -60,7 +61,12 @@ export function getPlaceholderImage(width: number, height: number): string {
  */
 export function convertPhase3PostToPostData(post: Record<string, any>): ConvertedPostData {
   const getCoverImage = (post: Record<string, any>) => {
-    return post.images?.featured || post.images?.cover || post.images?.card || post.coverImage || { url: '', alt: post.title };
+    const imageObj = post.images?.featured || post.images?.cover || post.images?.card || post.coverImage || { url: '', alt: post.title };
+    // Convert Google Drive URLs to direct image URLs
+    if (imageObj?.url) {
+      return { ...imageObj, url: convertGoogleDriveUrl(imageObj.url) };
+    }
+    return imageObj;
   };
 
   return {
