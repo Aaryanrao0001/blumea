@@ -125,7 +125,7 @@ const PostSchema = new Schema(
 );
 
 // Text index for search functionality
-PostSchema.index({ title: 'text', excerpt: 'text', bodyRaw: 'text' });
+PostSchema.index({ title: 'text', excerpt: 'text', bodyRaw: 'text', seoTitle: 'text', seoDescription: 'text' });
 
 export const Post: Model<IPostDocument> =
   mongoose.models.Post || mongoose.model<IPostDocument>('Post', PostSchema);

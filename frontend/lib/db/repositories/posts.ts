@@ -174,13 +174,42 @@ export async function searchPosts(query: string): Promise<IPostPopulated[]> {
   await connectToDatabase();
   ensureModels();
 
+  try {
+    // Try text search first
+    const posts = await Post.find({
+      $text: { $search: query },
+      status: 'published',
+    })
+      .populate('category')
+      .populate('author')
+      .populate('tags')
+      .sort({ score: { $meta: 'textScore' } })
+      .limit(20)
+      .lean();
+
+    if (posts.length > 0) {
+      return posts as unknown as IPostPopulated[];
+    }
+  } catch (error) {
+    console.log('Text search failed, falling back to regex search:', error);
+  }
+
+  // Fallback to regex search if text search fails or returns no results
+  const regex = new RegExp(query, 'i');
   const posts = await Post.find({
-    $text: { $search: query },
+    status: 'published',
+    $or: [
+      { title: regex },
+      { excerpt: regex },
+      { bodyRaw: regex },
+      { seoTitle: regex },
+      { seoDescription: regex },
+    ],
   })
     .populate('category')
     .populate('author')
     .populate('tags')
-    .sort({ score: { $meta: 'textScore' } })
+    .sort({ publishedAt: -1 })
     .limit(20)
     .lean();
 
