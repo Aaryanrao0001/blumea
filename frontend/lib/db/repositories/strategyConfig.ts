@@ -10,13 +10,20 @@ export async function getStrategyConfig(): Promise<StrategyConfig | null> {
   return config as StrategyConfig | null;
 }
 
-export async function createStrategyConfig(data: Omit<StrategyConfig, '_id'>): Promise<StrategyConfig> {
+export async function getCurrentConfig(): Promise<StrategyConfig> {
   await connectToDatabase();
-  const config = await StrategyConfigModel.create(data);
-  return config.toObject() as StrategyConfig;
+  
+  const config = await StrategyConfigModel.findOne().lean();
+  
+  if (config) {
+    return config as StrategyConfig;
+  }
+  
+  // Create default config if none exists
+  return await getOrCreateStrategyConfig();
 }
 
-export async function updateStrategyConfig(data: Partial<Omit<StrategyConfig, '_id'>>): Promise<StrategyConfig | null> {
+export async function updateConfig(data: Partial<Omit<StrategyConfig, '_id'>>): Promise<StrategyConfig | null> {
   await connectToDatabase();
   
   const config = await StrategyConfigModel.findOneAndUpdate(
@@ -27,6 +34,15 @@ export async function updateStrategyConfig(data: Partial<Omit<StrategyConfig, '_
   
   return config as StrategyConfig | null;
 }
+
+export async function createStrategyConfig(data: Omit<StrategyConfig, '_id'>): Promise<StrategyConfig> {
+  await connectToDatabase();
+  const config = await StrategyConfigModel.create(data);
+  return config.toObject() as StrategyConfig;
+}
+
+// Alias for backward compatibility
+export const updateStrategyConfig = updateConfig;
 
 export async function getOrCreateStrategyConfig(): Promise<StrategyConfig> {
   await connectToDatabase();

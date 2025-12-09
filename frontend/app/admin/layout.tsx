@@ -129,6 +129,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <a href="/admin/strategy" className="text-text-secondary hover:text-accent transition-colors">
                   Strategy
                 </a>
+                <a href="/admin/strategy-insights" className="text-text-secondary hover:text-accent transition-colors">
+                  Strategy Insights
+                </a>
                 <a href="/admin/test" className="text-text-secondary hover:text-accent transition-colors">
                   System Test
                 </a>
