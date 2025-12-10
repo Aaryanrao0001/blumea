@@ -160,6 +160,13 @@ export default function AdminDashboard() {
               <div className="text-sm text-text-secondary">Add or modify content topics</div>
             </a>
             <a
+              href="/admin/growth"
+              className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
+            >
+              <div className="font-medium text-text-primary">Growth Console</div>
+              <div className="text-sm text-text-secondary">AI-powered intelligence and opportunity tracking</div>
+            </a>
+            <a
               href="/admin/test"
               className="block p-4 bg-bg-tertiary rounded-md hover:bg-bg-primary transition-colors"
             >
