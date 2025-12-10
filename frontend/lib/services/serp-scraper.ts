@@ -2,37 +2,37 @@ import { connectToDatabase } from '../db/mongoose';
 import SerpInsight from '../db/models/SerpInsight';
 import { ISerpInsight } from '../types/intelligence';
 
-// User agents for rotation
-const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-];
+// User agents for rotation - currently unused but kept for future SERP scraping
+// const USER_AGENTS = [
+//   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+//   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+//   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+// ];
 
-// Rate limiter
-let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 3000; // 3 seconds between requests
+// Rate limiter - currently unused but kept for future SERP scraping functionality
+// let lastRequestTime = 0;
+// const MIN_REQUEST_INTERVAL = 3000; // 3 seconds between requests
 
-async function rateLimitedFetch(url: string): Promise<Response> {
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
-  }
-  
-  lastRequestTime = Date.now();
-  
-  const userAgent = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-  
-  return fetch(url, {
-    headers: {
-      'User-Agent': userAgent,
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.5',
-    },
-  });
-}
+// async function rateLimitedFetch(url: string): Promise<Response> {
+//   const now = Date.now();
+//   const timeSinceLastRequest = now - lastRequestTime;
+//   
+//   if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+//     await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+//   }
+//   
+//   lastRequestTime = Date.now();
+//   
+//   const userAgent = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+//   
+//   return fetch(url, {
+//     headers: {
+//       'User-Agent': userAgent,
+//       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+//       'Accept-Language': 'en-US,en;q=0.5',
+//     },
+//   });
+// }
 
 export async function scrapeSerpData(keyword: string): Promise<{
   success: boolean;

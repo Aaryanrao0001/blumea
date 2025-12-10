@@ -67,7 +67,7 @@ export async function analyzeTrendsForKeyword(
       timeRange: `today ${timeRange}` as 'today 1-m' | 'today 3-m' | 'today 12-m',
       interestOverTime: mockInterestData,
       relatedQueries: generateMockRelatedQueries(keyword),
-      relatedTopics: generateMockRelatedTopics(keyword),
+      relatedTopics: generateMockRelatedTopics(),
       trendDirection: direction,
       projected30dGrowth,
       lastUpdated: new Date(),
@@ -185,7 +185,7 @@ function generateMockRelatedQueries(keyword: string): { keyword: string; type: '
   }));
 }
 
-function generateMockRelatedTopics(keyword: string): { topic: string; score: number }[] {
+function generateMockRelatedTopics(): { topic: string; score: number }[] {
   const topics = [
     'Skincare routine',
     'Anti-aging',

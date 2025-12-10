@@ -198,7 +198,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Scraping failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error triggering scraping');
     } finally {
       setScraping(false);
@@ -223,7 +223,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Calculation failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error calculating opportunities');
     } finally {
       setCalculating(false);
@@ -244,7 +244,7 @@ export default function GrowthDashboard() {
       if (data.success) {
         await fetchOpportunities();
       }
-    } catch (error) {
+    } catch {
       alert('Error marking opportunity');
     }
   };
@@ -263,7 +263,7 @@ export default function GrowthDashboard() {
       if (data.success) {
         await fetchOpportunities();
       }
-    } catch (error) {
+    } catch {
       alert('Error dismissing opportunity');
     }
   };
@@ -286,7 +286,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Auto-generation failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error triggering auto-generation');
     }
   };
@@ -360,7 +360,7 @@ export default function GrowthDashboard() {
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id as any);
+                  setActiveTab(tab.id as 'reddit' | 'trends' | 'serp' | 'opportunities' | 'strategy');
                   if (tab.id === 'strategy' && !strategyReport) {
                     fetchStrategyReport();
                   }
@@ -388,7 +388,7 @@ export default function GrowthDashboard() {
               
               {opportunities.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No opportunities found. Click "Calculate Opportunities" to analyze your data.
+                  No opportunities found. Click &quot;Calculate Opportunities&quot; to analyze your data.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -473,7 +473,7 @@ export default function GrowthDashboard() {
               
               {redditInsights.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No Reddit data yet. Click "Scrape Reddit" to gather insights.
+                  No Reddit data yet. Click &quot;Scrape Reddit&quot; to gather insights.
                 </div>
               ) : (
                 <div className="space-y-4">
