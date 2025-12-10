@@ -10,6 +10,12 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Thresholds for week-over-week comparison
+const SCORE_CHANGE_THRESHOLD = 5; // Points change to consider significant
+const ENGAGEMENT_INCREASE_THRESHOLD = 1.1; // 10% increase
+const ENGAGEMENT_DECREASE_THRESHOLD = 0.9; // 10% decrease
+const MAX_REDDIT_KEYWORDS_FOR_BUZZ_SCORE = 50; // Limit keywords to prevent expensive operations
+
 function getWeekBounds(date: Date = new Date()): { weekStart: Date; weekEnd: Date } {
   const weekStart = new Date(date);
   weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
@@ -60,7 +66,10 @@ export async function generateStrategyReport(saveToHistory: boolean = true): Pro
     const avgOpportunityScore = totalOpportunities > 0 
       ? topOpportunities.reduce((sum, o) => sum + o.score, 0) / totalOpportunities 
       : 0;
-    const redditBuzzScore = redditKeywords.reduce((sum, k) => sum + k.count, 0);
+    // Limit keywords processed to prevent expensive operations with large datasets
+    const redditBuzzScore = redditKeywords
+      .slice(0, MAX_REDDIT_KEYWORDS_FOR_BUZZ_SCORE)
+      .reduce((sum, k) => sum + k.count, 0);
     
     // Build comparison context
     let comparisonContext = '';
@@ -167,12 +176,12 @@ Respond in JSON format:
         const unchanged: string[] = [];
         
         const scoreChange = avgOpportunityScore - previousReport.avgOpportunityScore;
-        if (scoreChange > 5) improved.push('Average opportunity score increased');
-        else if (scoreChange < -5) declined.push('Average opportunity score decreased');
+        if (scoreChange > SCORE_CHANGE_THRESHOLD) improved.push('Average opportunity score increased');
+        else if (scoreChange < -SCORE_CHANGE_THRESHOLD) declined.push('Average opportunity score decreased');
         else unchanged.push('Average opportunity score stable');
         
-        if (redditBuzzScore > previousReport.redditBuzzScore * 1.1) improved.push('Reddit engagement increased');
-        else if (redditBuzzScore < previousReport.redditBuzzScore * 0.9) declined.push('Reddit engagement decreased');
+        if (redditBuzzScore > previousReport.redditBuzzScore * ENGAGEMENT_INCREASE_THRESHOLD) improved.push('Reddit engagement increased');
+        else if (redditBuzzScore < previousReport.redditBuzzScore * ENGAGEMENT_DECREASE_THRESHOLD) declined.push('Reddit engagement decreased');
         else unchanged.push('Reddit engagement stable');
         
         comparedToLastWeek = {
