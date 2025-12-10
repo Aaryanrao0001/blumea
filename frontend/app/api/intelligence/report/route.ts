@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateStrategyReport } from '@/lib/services/strategy-report';
+import { generateStrategyReport, getHistoricalReports, getReportByWeek } from '@/lib/services/strategy-report';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -15,8 +15,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // For GET, we'll generate a fresh report
-    const result = await generateStrategyReport();
+    const { searchParams } = new URL(req.url);
+    const history = searchParams.get('history');
+    const compare = searchParams.get('compare');
+    const weekStart = searchParams.get('weekStart');
+    
+    // Get historical reports
+    if (history === 'true') {
+      const limit = parseInt(searchParams.get('limit') || '10');
+      const reports = await getHistoricalReports(limit);
+      return NextResponse.json({ success: true, reports });
+    }
+    
+    // Get specific week's report
+    if (weekStart) {
+      const weekDate = new Date(weekStart);
+      const report = await getReportByWeek(weekDate);
+      
+      if (!report) {
+        return NextResponse.json({ success: false, error: 'Report not found' }, { status: 404 });
+      }
+      
+      return NextResponse.json({ success: true, report });
+    }
+
+    // Generate a fresh report (without saving to history by default on GET)
+    const result = await generateStrategyReport(compare === 'true');
 
     return NextResponse.json(result);
   } catch (error) {
@@ -34,7 +58,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const result = await generateStrategyReport();
+    const body = await req.json().catch(() => ({}));
+    const saveToHistory = body.saveToHistory !== false; // Default to true
+
+    const result = await generateStrategyReport(saveToHistory);
 
     return NextResponse.json(result);
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { getAdminAuthHeader } from '@/lib/utils/adminAuth';
 
 interface RedditInsight {
   _id: string;
@@ -101,7 +102,11 @@ export default function GrowthDashboard() {
 
   const fetchRedditInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/reddit');
+      const res = await fetch('/api/intelligence/reddit', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setRedditInsights(data.insights || []);
@@ -113,7 +118,11 @@ export default function GrowthDashboard() {
 
   const fetchTrendsInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/trends?action=rising&limit=20');
+      const res = await fetch('/api/intelligence/trends?action=rising&limit=20', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setTrendsInsights(data.insights || []);
@@ -125,7 +134,11 @@ export default function GrowthDashboard() {
 
   const fetchSerpInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/serp?limit=20');
+      const res = await fetch('/api/intelligence/serp?limit=20', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setSerpInsights(data.insights || []);
@@ -137,7 +150,11 @@ export default function GrowthDashboard() {
 
   const fetchOpportunities = async () => {
     try {
-      const res = await fetch('/api/intelligence/opportunities?limit=30&minScore=40');
+      const res = await fetch('/api/intelligence/opportunities?limit=30&minScore=40', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setOpportunities(data.opportunities || []);
@@ -149,7 +166,11 @@ export default function GrowthDashboard() {
 
   const fetchStrategyReport = async () => {
     try {
-      const res = await fetch('/api/intelligence/report');
+      const res = await fetch('/api/intelligence/report', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success && data.report) {
         setStrategyReport(data.report);
@@ -164,7 +185,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/reddit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ limit: 25 }),
       });
       const data = await res.json();
@@ -174,7 +198,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Scraping failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error triggering scraping');
     } finally {
       setScraping(false);
@@ -186,7 +210,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'calculate' }),
       });
       const data = await res.json();
@@ -196,7 +223,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Calculation failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error calculating opportunities');
     } finally {
       setCalculating(false);
@@ -207,14 +234,17 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'mark_actioned', opportunityId }),
       });
       const data = await res.json();
       if (data.success) {
         await fetchOpportunities();
       }
-    } catch (error) {
+    } catch {
       alert('Error marking opportunity');
     }
   };
@@ -223,14 +253,17 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'dismiss', opportunityId }),
       });
       const data = await res.json();
       if (data.success) {
         await fetchOpportunities();
       }
-    } catch (error) {
+    } catch {
       alert('Error dismissing opportunity');
     }
   };
@@ -241,7 +274,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/auto-generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ count: 3, minScore: 70 }),
       });
       const data = await res.json();
@@ -250,7 +286,7 @@ export default function GrowthDashboard() {
       } else {
         alert(`Auto-generation failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error triggering auto-generation');
     }
   };
@@ -324,7 +360,7 @@ export default function GrowthDashboard() {
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id as any);
+                  setActiveTab(tab.id as 'reddit' | 'trends' | 'serp' | 'opportunities' | 'strategy');
                   if (tab.id === 'strategy' && !strategyReport) {
                     fetchStrategyReport();
                   }
@@ -352,7 +388,7 @@ export default function GrowthDashboard() {
               
               {opportunities.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No opportunities found. Click "Calculate Opportunities" to analyze your data.
+                  No opportunities found. Click &quot;Calculate Opportunities&quot; to analyze your data.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -437,7 +473,7 @@ export default function GrowthDashboard() {
               
               {redditInsights.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No Reddit data yet. Click "Scrape Reddit" to gather insights.
+                  No Reddit data yet. Click &quot;Scrape Reddit&quot; to gather insights.
                 </div>
               ) : (
                 <div className="space-y-4">
