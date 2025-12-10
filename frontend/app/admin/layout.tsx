@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
+import { setAdminPassword, isAdminAuthenticated, clearAdminAuth } from '@/lib/utils/adminAuth';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -14,8 +15,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const storedAuth = sessionStorage.getItem('admin_auth');
-    if (storedAuth === 'true') {
+    if (isAdminAuthenticated()) {
       setIsAuthenticated(true);
     }
     setLoading(false);
@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       
       if (data.success) {
         setIsAuthenticated(true);
-        sessionStorage.setItem('admin_auth', 'true');
+        setAdminPassword(password);
       } else {
         setError(data.message || 'Invalid password');
       }
@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <button
               onClick={() => {
-                sessionStorage.removeItem('admin_auth');
+                clearAdminAuth();
                 setIsAuthenticated(false);
               }}
               className="text-text-tertiary hover:text-text-primary transition-colors text-sm"

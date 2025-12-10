@@ -12,6 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { getAdminAuthHeader } from '@/lib/utils/adminAuth';
 
 interface RedditInsight {
   _id: string;
@@ -101,7 +102,11 @@ export default function GrowthDashboard() {
 
   const fetchRedditInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/reddit');
+      const res = await fetch('/api/intelligence/reddit', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setRedditInsights(data.insights || []);
@@ -113,7 +118,11 @@ export default function GrowthDashboard() {
 
   const fetchTrendsInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/trends?action=rising&limit=20');
+      const res = await fetch('/api/intelligence/trends?action=rising&limit=20', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setTrendsInsights(data.insights || []);
@@ -125,7 +134,11 @@ export default function GrowthDashboard() {
 
   const fetchSerpInsights = async () => {
     try {
-      const res = await fetch('/api/intelligence/serp?limit=20');
+      const res = await fetch('/api/intelligence/serp?limit=20', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setSerpInsights(data.insights || []);
@@ -137,7 +150,11 @@ export default function GrowthDashboard() {
 
   const fetchOpportunities = async () => {
     try {
-      const res = await fetch('/api/intelligence/opportunities?limit=30&minScore=40');
+      const res = await fetch('/api/intelligence/opportunities?limit=30&minScore=40', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setOpportunities(data.opportunities || []);
@@ -149,7 +166,11 @@ export default function GrowthDashboard() {
 
   const fetchStrategyReport = async () => {
     try {
-      const res = await fetch('/api/intelligence/report');
+      const res = await fetch('/api/intelligence/report', {
+        headers: {
+          ...getAdminAuthHeader(),
+        },
+      });
       const data = await res.json();
       if (data.success && data.report) {
         setStrategyReport(data.report);
@@ -164,7 +185,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/reddit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ limit: 25 }),
       });
       const data = await res.json();
@@ -186,7 +210,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'calculate' }),
       });
       const data = await res.json();
@@ -207,7 +234,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'mark_actioned', opportunityId }),
       });
       const data = await res.json();
@@ -223,7 +253,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/opportunities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ action: 'dismiss', opportunityId }),
       });
       const data = await res.json();
@@ -241,7 +274,10 @@ export default function GrowthDashboard() {
     try {
       const res = await fetch('/api/intelligence/auto-generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeader(),
+        },
         body: JSON.stringify({ count: 3, minScore: 70 }),
       });
       const data = await res.json();
